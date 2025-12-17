@@ -1,324 +1,203 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Game Dev Space</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>Game Dev Space</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Firebase v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<!-- Firebase v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <style>
-    *{box-sizing:border-box;font-family:Inter,Arial,sans-serif}
-    body{
-      margin:0;
-      color:#fff;
-      background:radial-gradient(circle at top,#1b1f3b,#050510 70%);
-      overflow-x:hidden;
-    }
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      background:linear-gradient(120deg,rgba(79,70,229,.15),rgba(34,197,94,.1),rgba(236,72,153,.12));
-      animation:bgMove 12s ease-in-out infinite alternate;
-      z-index:-1;
-    }
-    @keyframes bgMove{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(40deg)}}
-
-    header{
-      padding:20px;
-      text-align:center;
-      position:sticky;
-      top:0;
-      backdrop-filter:blur(10px);
-      background:rgba(10,10,25,.6);
-      z-index:5;
-    }
-    header h1{margin:0;font-size:28px;letter-spacing:1px}
-    header .actions{position:absolute;right:20px;top:20px;display:flex;gap:10px}
-
-    button{
-      background:#4f46e5;
-      color:#fff;
-      border:none;
-      padding:12px 20px;
-      border-radius:14px;
-      font-weight:bold;
-      cursor:pointer;
-      transition:.2s;
-      font-size:16px;
-    }
-    button:hover{transform:translateY(-2px)}
-
-    main{max-width:1200px;margin:auto;padding:30px}
-    h2{margin:20px 0 12px}
-
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
-
-    .card{
-      background:rgba(20,20,40,.85);
-      border-radius:18px;
-      overflow:hidden;
-      cursor:pointer;
-      transition:.25s;
-      box-shadow:0 10px 30px rgba(0,0,0,.4);
-      position:relative;
-    }
-    .card:hover{transform:translateY(-6px) scale(1.02)}
-    .card img{width:100%;height:140px;object-fit:cover}
-
-    .info{padding:14px}
-    .info h3{margin:0 0 6px}
-    .info small{opacity:.6}
-
-    .like-count{
-      position:absolute;
-      top:10px;
-      left:10px;
-      background:rgba(0,0,0,.6);
-      border-radius:999px;
-      padding:6px 12px;
-      font-size:14px;
-    }
-
-    .delete-btn{
-      position:absolute;
-      top:10px;
-      right:10px;
-      background:#ef4444;
-      font-size:13px;
-      padding:6px 10px;
-      border-radius:10px;
-    }
-
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;justify-content:center;align-items:center;z-index:10}
-    .box{background:#0f1025;padding:22px;border-radius:18px;width:100%;max-width:440px;display:grid;gap:12px;box-shadow:0 0 40px rgba(79,70,229,.3)}
-    .box input,.box textarea{padding:12px;border-radius:10px;border:none;background:#050510;color:#fff;font-size:15px}
-    textarea{resize:none;height:110px}
-
-    .game-page{max-width:900px;margin:auto}
-    .game-page img{width:100%;border-radius:18px}
-    .game-page p{opacity:.85;font-size:16px}
-    .game-actions{display:flex;gap:14px;margin-top:20px}
-
-    footer{text-align:center;padding:30px;opacity:.4}
-  </style>
+<style>
+*{box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+body{
+  margin:0;
+  color:#fff;
+  background:radial-gradient(circle at top,#1b1f3b,#050510 70%);
+}
+header{
+  padding:20px;
+  text-align:center;
+  position:sticky;
+  top:0;
+  backdrop-filter:blur(10px);
+  background:rgba(10,10,25,.7);
+  z-index:5;
+}
+header h1{margin:0;font-size:28px}
+header .actions{position:absolute;right:20px;top:20px;display:flex;gap:10px}
+button{
+  background:#4f46e5;
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.danger{background:#ef4444}
+main{max-width:1200px;margin:auto;padding:30px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.card{
+  background:rgba(20,20,40,.9);
+  border-radius:18px;
+  overflow:hidden;
+  cursor:pointer;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  position:relative;
+  transition:.2s;
+}
+.card:hover{transform:translateY(-4px)}
+.card img{width:100%;height:140px;object-fit:cover}
+.info{padding:14px}
+.like-count{
+  position:absolute;top:10px;left:10px;
+  background:rgba(0,0,0,.6);
+  padding:6px 12px;border-radius:999px
+}
+.delete-btn{
+  position:absolute;top:10px;right:10px;
+  background:#ef4444;font-size:12px
+}
+#adminPanel{
+  background:rgba(15,15,40,.95);
+  padding:20px;border-radius:18px;
+  margin-bottom:30px;display:none
+}
+#gameView{display:none;max-width:900px;margin:auto;padding:30px}
+footer{text-align:center;padding:30px;opacity:.4}
+</style>
 </head>
 <body>
-
-<audio id="bgMusic" src="https://cdn.pixabay.com/audio/2023/03/28/audio_9b27d4a8e2.mp3" autoplay loop></audio>
 
 <header>
   <h1>Game Dev Space</h1>
   <div class="actions">
     <button id="loginBtn">Login</button>
-    <button id="postBtn" style="display:none">Postar</button>
-    <button id="adminDelBtn" style="display:none;background:#ef4444">Apagar TODOS</button>
+    <button id="postBtn" style="display:none">Novo Jogo</button>
     <button id="logoutBtn" style="display:none">Sair</button>
   </div>
 </header>
 
 <main id="home">
-  <h2>Em alta</h2>
-  <div class="grid" id="featured"></div>
+  <section id="adminPanel">
+    <h2>Painel Admin</h2>
+    <p>Somente você pode ver isso.</p>
+    <button class="danger" id="wipeGames">Apagar TODOS os jogos</button>
+  </section>
 
-  <h2 style="margin-top:40px">Todos os jogos</h2>
+  <h2>Jogos</h2>
   <div class="grid" id="games"></div>
 </main>
 
-<main id="gameView" style="display:none"></main>
+<main id="gameView"></main>
 
-<footer>Game Dev Space • Biblioteca de jogos HTML</footer>
+<footer>Game Dev Space • versão clean</footer>
 
-<!-- BLOCO 1 COMPLETO: PERFIL + FAVORITOS + TAGS + BUSCA + RANKING + COMENTÁRIOS (BASE) -->
-<!-- Continuação do script -->
 <script>
-/* ================= CONFIG ================= */
+/* CONFIG */
 const OWNER_UID = "EvTgWu6fFFeWJrFdckMNVa1E20J3";
-
 const firebaseConfig = {
   apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
   authDomain: "game-dev-space.firebaseapp.com",
   databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
   projectId: "game-dev-space",
-  storageBucket: "game-dev-space.appspot.com",
-  messagingSenderId: "1073185335190",
-  appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
 };
-
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.database();
 const gamesRef = db.ref("games");
-const commentsRef = db.ref("comments");
 
 let currentUser = null;
 
-/* ================= AUTH ================= */
-auth.onAuthStateChanged(user => {
-  currentUser = user;
-  loginBtn.style.display  = user ? "none" : "inline-block";
-  logoutBtn.style.display = user ? "inline-block" : "none";
-  postBtn.style.display   = user ? "inline-block" : "none";
-  adminDelBtn.style.display = user && user.uid === OWNER_UID ? "inline-block" : "none";
+/* AUTH */
+auth.onAuthStateChanged(user=>{
+  currentUser=user;
+  loginBtn.style.display=user?"none":"inline-block";
+  logoutBtn.style.display=user?"inline-block":"none";
+  postBtn.style.display=user?"inline-block":"none";
+  adminPanel.style.display=(user&&user.uid===OWNER_UID)?"block":"none";
+});
+loginBtn.onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+logoutBtn.onclick=()=>auth.signOut();
+
+/* POST */
+postBtn.onclick=()=>{
+  if(!currentUser) return;
+  const name=prompt("Nome do jogo");
+  const img=prompt("Imagem (URL)");
+  const url=prompt("Link do jogo");
+  if(!name||!url) return;
+  gamesRef.push({
+    name,img:img||"",url,
+    likes:0,likedBy:{},
+    owner:currentUser.uid,
+    created:Date.now()
+  });
+};
+
+wipeGames.onclick=()=>{
+  if(confirm("APAGAR TODOS OS JOGOS?")) gamesRef.remove();
+};
+
+/* RENDER */
+const gamesEl=document.getElementById("games");
+
+gamesRef.on("value",snap=>{
+  gamesEl.innerHTML="";
+  const data=snap.val()||{};
+  Object.entries(data)
+    .sort((a,b)=>b[1].likes-a[1].likes)
+    .forEach(([id,g])=>gamesEl.appendChild(card(id,g)));
 });
 
-loginBtn.onclick = () => {
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-};
-logoutBtn.onclick = () => auth.signOut();
-
-/* ================= POST ================= */
-postBtn.onclick = () => {
-  if (!currentUser) return alert("Faça login");
-  const name = prompt("Nome do jogo");
-  const img  = prompt("URL da imagem");
-  const url  = prompt("Link do jogo");
-  const desc = prompt("Descrição");
-  if (!name || !url) return;
-
-  gamesRef.push({
-    name,
-    img: img || "",
-    url,
-    desc: desc || "",
-    owner: currentUser.uid,
-    likes: 0,
-    likedBy: {},
-    views: 0,
-    created: Date.now()
-  });
-};
-
-adminDelBtn.onclick = () => {
-  if (confirm("APAGAR TODOS OS JOGOS?")) gamesRef.remove();
-};
-
-/* ================= RENDER ================= */
-const gamesEl = document.getElementById("games");
-const featuredEl = document.getElementById("featured");
-
-function render() {
-  gamesRef.on("value", snap => {
-    gamesEl.innerHTML = "";
-    featuredEl.innerHTML = "";
-
-    const data = snap.val() || {};
-    const list = Object.entries(data).map(([id, g]) => ({ id, ...g }));
-
-    list.sort((a, b) => (b.likes + b.views) - (a.likes + a.views))
-        .slice(0, 4)
-        .forEach(g => featuredEl.appendChild(createCard(g)));
-
-    list.sort((a, b) => b.created - a.created)
-        .forEach(g => gamesEl.appendChild(createCard(g)));
-  });
-}
-render();
-
-/* ================= CARD ================= */
-function createCard(g) {
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const canDelete = currentUser && (currentUser.uid === g.owner || currentUser.uid === OWNER_UID);
-
-  card.innerHTML = `
-    <div class="like-count">❤ ${g.likes || 0}</div>
-    ${canDelete ? `<button class="delete-btn">Deletar</button>` : ""}
+function card(id,g){
+  const d=document.createElement("div");
+  d.className="card";
+  const canDel=currentUser&&(currentUser.uid===OWNER_UID||currentUser.uid===g.owner);
+  d.innerHTML=`
+    <div class="like-count">❤ ${g.likes||0}</div>
+    ${canDel?`<button class="delete-btn">X</button>`:""}
     <img src="${g.img}">
-    <div class="info">
-      <h3>${g.name}</h3>
-      <small>${g.desc}</small>
-    </div>
-  `;
-
-  card.onclick = () => openGame(g);
-
-  if (canDelete) {
-    card.querySelector(".delete-btn").onclick = e => {
+    <div class="info"><h3>${g.name}</h3></div>`;
+  d.onclick=()=>openGame(id,g);
+  if(canDel){
+    d.querySelector(".delete-btn").onclick=e=>{
       e.stopPropagation();
-      if (confirm("Deletar jogo?")) gamesRef.child(g.id).remove();
+      if(confirm("Deletar jogo?")) gamesRef.child(id).remove();
     };
   }
-
-  return card;
+  return d;
 }
 
-/* ================= GAME PAGE ================= */
-function openGame(g) {
-  home.style.display = "none";
-  gameView.style.display = "block";
-
-  gamesRef.child(g.id).child("views").transaction(v => (v || 0) + 1);
-
-  gameView.innerHTML = `
+/* GAME VIEW */
+function openGame(id,g){
+  home.style.display="none";
+  gameView.style.display="block";
+  gameView.innerHTML=`
     <button onclick="back()">← Voltar</button>
-    <img src="${g.img}">
     <h2>${g.name}</h2>
-    <p>${g.desc}</p>
-    <button onclick="window.open('${g.url}')">Jogar</button>
-    <button onclick="like('${g.id}')">❤ Curtir</button>
-    <h3>Comentários</h3>
-    <div id="comments"></div>
-    ${currentUser ? `<textarea id="cText" placeholder="Comentar"></textarea><button onclick="sendComment('${g.id}')">Enviar</button>` : "<small>Faça login para comentar</small>"}
-  `;
-
-  loadComments(g.id);
+    <button onclick="like('${id}')">❤ Curtir</button>
+    <button onclick="window.open('${g.url}')">Jogar</button>`;
+}
+function back(){
+  gameView.style.display="none";
+  home.style.display="block";
 }
 
-function back() {
-  gameView.style.display = "none";
-  home.style.display = "block";
-}
-
-/* ================= LIKE (ANTI-SPAM) ================= */
-function like(id) {
-  if (!currentUser) return alert("Faça login");
-
-  gamesRef.child(id).transaction(g => {
-    if (!g) return g;
-    g.likedBy = g.likedBy || {};
-
-    if (g.likedBy[currentUser.uid]) return g;
-
-    g.likedBy[currentUser.uid] = true;
-    g.likes = (g.likes || 0) + 1;
+/* LIKE FIX */
+function like(id){
+  if(!currentUser) return alert("Faça login");
+  gamesRef.child(id).transaction(g=>{
+    if(!g) return g;
+    g.likedBy=g.likedBy||{};
+    if(g.likedBy[currentUser.uid]) return g;
+    g.likedBy[currentUser.uid]=true;
+    g.likes=(g.likes||0)+1;
     return g;
-  });
-}
-
-/* ================= COMMENTS ================= */
-function sendComment(id) {
-  const t = document.getElementById("cText").value.trim();
-  if (!t || !currentUser) return;
-
-  commentsRef.child(id).push({
-    text: t,
-    uid: currentUser.uid,
-    ts: Date.now()
-  });
-
-  document.getElementById("cText").value = "";
-}
-
-function loadComments(id) {
-  commentsRef.child(id).on("value", snap => {
-    const box = document.getElementById("comments");
-    if (!box) return;
-    box.innerHTML = "";
-
-    const data = snap.val() || {};
-    Object.values(data).forEach(c => {
-      const d = document.createElement("div");
-      d.style.cssText = "background:#050510;padding:10px;border-radius:10px;margin-bottom:8px";
-      d.textContent = c.text;
-      box.appendChild(d);
-    });
   });
 }
 </script>
