@@ -11,39 +11,141 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <style>
-    * { box-sizing:border-box; font-family:Arial,sans-serif }
-    body { margin:0; background:#0f0f14; color:#fff }
+    * { box-sizing:border-box; font-family:Inter,Arial,sans-serif }
+    body {
+      margin:0;
+      color:#fff;
+      background: radial-gradient(circle at top, #1b1f3b, #050510 70%);
+      overflow-x:hidden;
+    }
 
-    header { padding:20px; background:#151522; text-align:center; position:relative }
-    header h1 { margin:0; font-size:28px }
-    header .actions { position:absolute; right:20px; top:20px; display:flex; gap:10px }
-    button { background:#4f46e5; color:#fff; border:none; padding:8px 14px; border-radius:10px; font-weight:bold; cursor:pointer }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:linear-gradient(120deg,rgba(79,70,229,.15),rgba(34,197,94,.1),rgba(236,72,153,.12));
+      animation:bgMove 12s ease-in-out infinite alternate;
+      z-index:-1;
+    }
 
-    main { max-width:1200px; margin:auto; padding:20px }
+    @keyframes bgMove{
+      from{filter:hue-rotate(0deg)}
+      to{filter:hue-rotate(40deg)}
+    }
 
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px }
-    .card { background:#151522; border-radius:16px; overflow:hidden; cursor:pointer; transition:.2s }
-    .card:hover { transform:scale(1.03) }
-    .card img { width:100%; height:140px; object-fit:cover }
-    .info { padding:14px }
-    .info h3 { margin:0 0 6px }
-    .info small { opacity:.6 }
+    header{
+      padding:20px;
+      text-align:center;
+      position:sticky;
+      top:0;
+      backdrop-filter:blur(10px);
+      background:rgba(10,10,25,.6);
+      z-index:5;
+    }
 
-    .modal { position:fixed; inset:0; background:rgba(0,0,0,.8); display:none; justify-content:center; align-items:center; z-index:10 }
-    .box { background:#151522; padding:20px; border-radius:16px; width:100%; max-width:420px; display:grid; gap:10px }
-    .box input, .box textarea { padding:10px; border-radius:8px; border:none; background:#0f0f14; color:#fff }
-    textarea { resize:none; height:100px }
+    header h1{margin:0;font-size:28px;letter-spacing:1px}
+    header .actions{position:absolute;right:20px;top:20px;display:flex;gap:10px}
 
-    .game-page { max-width:900px; margin:auto }
-    .game-page img { width:100%; border-radius:16px }
-    .game-page h2 { margin:16px 0 8px }
-    .game-page p { opacity:.8 }
+    button{
+      background:#4f46e5;
+      color:#fff;
+      border:none;
+      padding:8px 14px;
+      border-radius:10px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:.2s;
+    }
+    button:hover{transform:translateY(-2px)}
 
-    .actions-row { display:flex; gap:10px; margin:14px 0 }
-    .like { background:#ef4444 }
-    .highlight { background:#22c55e; color:#000 }
+    main{max-width:1200px;margin:auto;padding:30px}
+    h2{margin:20px 0 12px}
 
-    footer { text-align:center; padding:20px; opacity:.4 }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:20px;
+    }
+
+    .card{
+      background:rgba(20,20,40,.85);
+      border-radius:18px;
+      overflow:hidden;
+      cursor:pointer;
+      transition:.25s;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);
+      position:relative;
+    }
+
+    .card:hover{transform:translateY(-6px) scale(1.02)}
+
+    .card img{width:100%;height:140px;object-fit:cover}
+
+    .info{padding:14px}
+    .info h3{margin:0 0 6px}
+    .info small{opacity:.6}
+
+    .like-btn{
+      position:absolute;
+      top:10px;
+      left:10px;
+      background:rgba(0,0,0,.6);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .like-btn.liked{background:#ef4444}
+
+    .delete-btn{
+      position:absolute;
+      top:10px;
+      right:10px;
+      background:#ef4444;
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:8px;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.8);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      z-index:10;
+    }
+
+    .box{
+      background:#0f1025;
+      padding:22px;
+      border-radius:18px;
+      width:100%;
+      max-width:420px;
+      display:grid;
+      gap:10px;
+      box-shadow:0 0 40px rgba(79,70,229,.3);
+    }
+
+    .box input,.box textarea{
+      padding:10px;
+      border-radius:8px;
+      border:none;
+      background:#050510;
+      color:#fff;
+    }
+
+    textarea{resize:none;height:90px}
+
+    .game-page{max-width:900px;margin:auto}
+    .game-page img{width:100%;border-radius:18px}
+    .game-page p{opacity:.85}
+
+    footer{text-align:center;padding:30px;opacity:.4}
   </style>
 </head>
 <body>
@@ -58,7 +160,7 @@
 </header>
 
 <main id="home">
-  <h2>Destaques</h2>
+  <h2>Em alta</h2>
   <div class="grid" id="featured"></div>
 
   <h2 style="margin-top:40px">Todos os jogos</h2>
@@ -69,7 +171,7 @@
 
 <footer>Game Dev Space • Biblioteca de jogos HTML</footer>
 
-<!-- MODALS -->
+<!-- MODAIS -->
 <div class="modal" id="authModal">
   <div class="box">
     <h2>Login</h2>
@@ -77,17 +179,6 @@
     <input id="pass" type="password" placeholder="Senha">
     <button id="emailLogin">Entrar</button>
     <button id="googleLogin" style="background:#4285F4">Entrar com Google</button>
-    <button onclick="showRegister()">Criar conta</button>
-  </div>
-</div>
-
-<div class="modal" id="registerModal">
-  <div class="box">
-    <h2>Registro</h2>
-    <input id="nick" placeholder="Nickname">
-    <input id="regEmail" placeholder="Email">
-    <input id="regPass" type="password" placeholder="Senha">
-    <button id="register">Registrar</button>
   </div>
 </div>
 
@@ -103,51 +194,30 @@
 </div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
-    authDomain: "game-dev-space.firebaseapp.com",
-    databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
-    projectId: "game-dev-space",
-    storageBucket: "game-dev-space.firebasestorage.app",
-    messagingSenderId: "1073185335190",
-    appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
-  };
-
+  const firebaseConfig={apiKey:"AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",authDomain:"game-dev-space.firebaseapp.com",databaseURL:"https://game-dev-space-default-rtdb.firebaseio.com",projectId:"game-dev-space",storageBucket:"game-dev-space.firebasestorage.app",messagingSenderId:"1073185335190",appId:"1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"};
   firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
-  const gamesRef = db.ref('games');
-  const usersRef = db.ref('users');
 
-  let currentUser=null, currentNick='';
+  const auth=firebase.auth();
+  const db=firebase.database();
+  const gamesRef=db.ref('games');
+  const usersRef=db.ref('users');
 
-  const home=document.getElementById('home');
-  const gameView=document.getElementById('gameView');
+  let currentUser=null,currentNick='';
 
   loginBtn.onclick=()=>authModal.style.display='flex';
   logoutBtn.onclick=()=>auth.signOut();
   postBtn.onclick=()=>postModal.style.display='flex';
 
-  emailLogin.onclick=()=>auth.signInWithEmailAndPassword(email.value,pass.value).then(()=>authModal.style.display='none').catch(e=>alert(e.message));
-
+  emailLogin.onclick=()=>auth.signInWithEmailAndPassword(email.value,pass.value).then(()=>authModal.style.display='none');
   googleLogin.onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(()=>authModal.style.display='none');
-
-  register.onclick=()=>{
-    auth.createUserWithEmailAndPassword(regEmail.value,regPass.value).then(cred=>{
-      usersRef.child(cred.user.uid).set({nickname:nick.value});
-      registerModal.style.display='none';
-    }).catch(e=>alert(e.message));
-  };
-
-  function showRegister(){ authModal.style.display='none'; registerModal.style.display='flex' }
 
   auth.onAuthStateChanged(u=>{
     currentUser=u;
     if(u){
-      loginBtn.style.display='none'; logoutBtn.style.display='inline-block'; postBtn.style.display='inline-block';
+      loginBtn.style.display='none';logoutBtn.style.display='inline-block';postBtn.style.display='inline-block';
       usersRef.child(u.uid).once('value',s=>currentNick=s.val()?.nickname||u.displayName||'Dev');
-    } else {
-      loginBtn.style.display='inline-block'; logoutBtn.style.display='none'; postBtn.style.display='none';
+    }else{
+      loginBtn.style.display='inline-block';logoutBtn.style.display='none';postBtn.style.display='none';
     }
   });
 
@@ -160,43 +230,78 @@
       owner:currentUser.uid,
       ownerNick:currentNick,
       likes:0,
-      featured:false,
+      likedBy:{},
+      views:0,
       created:Date.now()
     });
     postModal.style.display='none';
   };
 
   gamesRef.on('value',snap=>{
-    games.innerHTML=''; featured.innerHTML='';
-    const data=snap.val(); if(!data) return;
-    Object.entries(data).sort((a,b)=>b[1].created-a[1].created).forEach(([id,g])=>{
-      const card=document.createElement('div'); card.className='card';
-      card.innerHTML=`<img src="${g.img}"><div class='info'><h3>${g.name}</h3><small>${g.ownerNick}</small></div>`;
-      card.onclick=()=>openGame(id,g);
-      games.appendChild(card);
-      if(g.featured) featured.appendChild(card.cloneNode(true));
-    });
+    games.innerHTML='';featured.innerHTML='';
+    const data=snap.val();if(!data)return;
+
+    const list=Object.entries(data).map(([id,g])=>({...g,id}));
+    const hot=[...list].sort((a,b)=>(b.likes+b.views)-(a.likes+a.views)).slice(0,4);
+
+    hot.forEach(g=>featured.appendChild(createCard(g)));
+    list.sort((a,b)=>b.created-a.created).forEach(g=>games.appendChild(createCard(g)));
   });
 
-  function openGame(id,g){
-    home.style.display='none'; gameView.style.display='block';
+  function createCard(g){
+    const card=document.createElement('div');card.className='card';
+
+    const liked=currentUser&&g.likedBy&&g.likedBy[currentUser.uid];
+
+    card.innerHTML=`
+      <div class='like-btn ${liked?'liked':''}' onclick="like('${g.id}')">❤ ${g.likes||0}</div>
+      ${currentUser&&g.owner===currentUser.uid?`<button class='delete-btn' onclick="del('${g.id}')">Deletar</button>`:''}
+      <img src='${g.img}'>
+      <div class='info'>
+        <h3>${g.name}</h3>
+        <small>${g.ownerNick}</small>
+      </div>`;
+
+    card.onclick=()=>openGame(g);
+    return card;
+  }
+
+  function openGame(g){
+    home.style.display='none';gameView.style.display='block';
+    gamesRef.child(g.id).child('views').transaction(v=>(v||0)+1);
+
     gameView.innerHTML=`
       <div class='game-page'>
         <button onclick='back()'>← Voltar</button>
         <img src='${g.img}'>
         <h2>${g.name}</h2>
         <p>${g.desc}</p>
-        <div class='actions-row'>
-          <button onclick="window.open('${g.url}')">Jogar</button>
-          <button class='like' onclick='like("${id}")'>❤ ${g.likes||0}</button>
-          ${currentUser&&g.owner===currentUser.uid?`<button class='highlight' onclick='feature("${id}")'>Destaque</button>`:''}
-        </div>
+        <button onclick="window.open('${g.url}')">Jogar</button>
       </div>`;
   }
 
-  function back(){ gameView.style.display='none'; home.style.display='block' }
-  function like(id){ gamesRef.child(id).child('likes').transaction(v=>(v||0)+1) }
-  function feature(id){ gamesRef.child(id).update({featured:true}) }
+  function back(){gameView.style.display='none';home.style.display='block'}
+
+  function like(id){
+    if(!currentUser)return alert('Faça login para curtir');
+    const ref=gamesRef.child(id);
+    ref.transaction(g=>{
+      if(!g)return g;
+      g.likedBy=g.likedBy||{};
+      if(g.likedBy[currentUser.uid]){
+        delete g.likedBy[currentUser.uid];
+        g.likes=(g.likes||1)-1;
+      }else{
+        g.likedBy[currentUser.uid]=true;
+        g.likes=(g.likes||0)+1;
+      }
+      return g;
+    });
+  }
+
+  function del(id){
+    if(confirm('Deletar este jogo?')) gamesRef.child(id).remove();
+  }
 </script>
 
 </body>
