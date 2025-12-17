@@ -159,24 +159,25 @@ const commentsRef = db.ref("comments");
 let currentUser = null;
 
 /* ================= AUTH ================= */
-auth.onAuthStateChanged(u => {
-  currentUser = u;
-  document.getElementById("loginBtn").style.display = u ? "none" : "inline-block";
-  document.getElementById("logoutBtn").style.display = u ? "inline-block" : "none";
-  document.getElementById("postBtn").style.display = u ? "inline-block" : "none";
-  document.getElementById("adminDelBtn").style.display = u && u.uid === OWNER_UID ? "inline-block" : "none";
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  loginBtn.style.display  = user ? "none" : "inline-block";
+  logoutBtn.style.display = user ? "inline-block" : "none";
+  postBtn.style.display   = user ? "inline-block" : "none";
+  adminDelBtn.style.display = user && user.uid === OWNER_UID ? "inline-block" : "none";
 });
 
-document.getElementById("loginBtn").onclick = () => {
+loginBtn.onclick = () => {
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 };
-document.getElementById("logoutBtn").onclick = () => auth.signOut();
+logoutBtn.onclick = () => auth.signOut();
 
 /* ================= POST ================= */
-document.getElementById("postBtn").onclick = () => {
+postBtn.onclick = () => {
+  if (!currentUser) return alert("Faça login");
   const name = prompt("Nome do jogo");
-  const img = prompt("URL da imagem");
-  const url = prompt("Link do jogo");
+  const img  = prompt("URL da imagem");
+  const url  = prompt("Link do jogo");
   const desc = prompt("Descrição");
   if (!name || !url) return;
 
@@ -187,13 +188,13 @@ document.getElementById("postBtn").onclick = () => {
     desc: desc || "",
     owner: currentUser.uid,
     likes: 0,
+    likedBy: {},
     views: 0,
     created: Date.now()
   });
 };
 
-/* ================= ADMIN DELETE ALL ================= */
-document.getElementById("adminDelBtn").onclick = () => {
+adminDelBtn.onclick = () => {
   if (confirm("APAGAR TODOS OS JOGOS?")) gamesRef.remove();
 };
 
@@ -201,54 +202,54 @@ document.getElementById("adminDelBtn").onclick = () => {
 const gamesEl = document.getElementById("games");
 const featuredEl = document.getElementById("featured");
 
-gamesRef.on("value", snap => {
-  gamesEl.innerHTML = "";
-  featuredEl.innerHTML = "";
-  const data = snap.val() || {};
+function render() {
+  gamesRef.on("value", snap => {
+    gamesEl.innerHTML = "";
+    featuredEl.innerHTML = "";
 
-  const list = Object.entries(data).map(([id, g]) => ({ id, ...g }));
+    const data = snap.val() || {};
+    const list = Object.entries(data).map(([id, g]) => ({ id, ...g }));
 
-  list.sort((a, b) => (b.likes + b.views) - (a.likes + a.views))
-      .slice(0, 4)
-      .forEach(g => featuredEl.appendChild(createCard(g)));
+    list.sort((a, b) => (b.likes + b.views) - (a.likes + a.views))
+        .slice(0, 4)
+        .forEach(g => featuredEl.appendChild(createCard(g)));
 
-  list.sort((a, b) => b.created - a.created)
-      .forEach(g => gamesEl.appendChild(createCard(g)));
-});
+    list.sort((a, b) => b.created - a.created)
+        .forEach(g => gamesEl.appendChild(createCard(g)));
+  });
+}
+render();
 
 /* ================= CARD ================= */
 function createCard(g) {
-  const c = document.createElement("div");
-  c.className = "card";
+  const card = document.createElement("div");
+  card.className = "card";
 
   const canDelete = currentUser && (currentUser.uid === g.owner || currentUser.uid === OWNER_UID);
 
-  c.innerHTML = `
+  card.innerHTML = `
     <div class="like-count">❤ ${g.likes || 0}</div>
     ${canDelete ? `<button class="delete-btn">Deletar</button>` : ""}
-    <img src="${g.img || ""}">
+    <img src="${g.img}">
     <div class="info">
-      <h3>${g.name || "Sem nome"}</h3>
-      <small>${g.desc || ""}</small>
+      <h3>${g.name}</h3>
+      <small>${g.desc}</small>
     </div>
   `;
 
-  c.onclick = () => openGame(g);
+  card.onclick = () => openGame(g);
 
   if (canDelete) {
-    c.querySelector(".delete-btn").onclick = e => {
+    card.querySelector(".delete-btn").onclick = e => {
       e.stopPropagation();
-      if (confirm("Deletar este jogo?")) gamesRef.child(g.id).remove();
+      if (confirm("Deletar jogo?")) gamesRef.child(g.id).remove();
     };
   }
 
-  return c;
+  return card;
 }
 
 /* ================= GAME PAGE ================= */
-const home = document.getElementById("home");
-const gameView = document.getElementById("gameView");
-
 function openGame(g) {
   home.style.display = "none";
   gameView.style.display = "block";
@@ -257,14 +258,14 @@ function openGame(g) {
 
   gameView.innerHTML = `
     <button onclick="back()">← Voltar</button>
-    <img src="${g.img || ""}">
+    <img src="${g.img}">
     <h2>${g.name}</h2>
     <p>${g.desc}</p>
     <button onclick="window.open('${g.url}')">Jogar</button>
     <button onclick="like('${g.id}')">❤ Curtir</button>
     <h3>Comentários</h3>
     <div id="comments"></div>
-    ${currentUser ? `<textarea id="cText" placeholder="Comentar"></textarea><button onclick="sendComment('${g.id}')">Enviar</button>` : ""}
+    ${currentUser ? `<textarea id="cText" placeholder="Comentar"></textarea><button onclick="sendComment('${g.id}')">Enviar</button>` : "<small>Faça login para comentar</small>"}
   `;
 
   loadComments(g.id);
@@ -275,11 +276,17 @@ function back() {
   home.style.display = "block";
 }
 
-/* ================= LIKE ================= */
+/* ================= LIKE (ANTI-SPAM) ================= */
 function like(id) {
   if (!currentUser) return alert("Faça login");
+
   gamesRef.child(id).transaction(g => {
     if (!g) return g;
+    g.likedBy = g.likedBy || {};
+
+    if (g.likedBy[currentUser.uid]) return g;
+
+    g.likedBy[currentUser.uid] = true;
     g.likes = (g.likes || 0) + 1;
     return g;
   });
@@ -288,19 +295,23 @@ function like(id) {
 /* ================= COMMENTS ================= */
 function sendComment(id) {
   const t = document.getElementById("cText").value.trim();
-  if (!t) return;
+  if (!t || !currentUser) return;
+
   commentsRef.child(id).push({
     text: t,
     uid: currentUser.uid,
     ts: Date.now()
   });
+
   document.getElementById("cText").value = "";
 }
 
 function loadComments(id) {
   commentsRef.child(id).on("value", snap => {
     const box = document.getElementById("comments");
+    if (!box) return;
     box.innerHTML = "";
+
     const data = snap.val() || {};
     Object.values(data).forEach(c => {
       const d = document.createElement("div");
