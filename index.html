@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Game Dev Space</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { margin: 0; background:#0f0f14; color:#fff; }
+
+    header {
+      padding:20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:#151522;
+    }
+
+    header h1 { margin:0; font-size:26px; }
+
+    header button {
+      background:#4f46e5;
+      color:#fff;
+      border:none;
+      padding:10px 16px;
+      border-radius:10px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    main { max-width:1200px; margin:auto; padding:20px; }
+
+    .form {
+      background:#151522;
+      padding:20px;
+      border-radius:14px;
+      margin-bottom:30px;
+      display:none;
+      gap:12px;
+    }
+
+    .form input, .form button {
+      padding:10px;
+      border-radius:8px;
+      border:none;
+      outline:none;
+      width:100%;
+    }
+
+    .form input { background:#0f0f14; color:#fff; }
+
+    .form button {
+      background:#22c55e;
+      color:#000;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:20px;
+    }
+
+    .card {
+      background:#151522;
+      border-radius:16px;
+      overflow:hidden;
+      transition:.2s;
+    }
+
+    .card:hover { transform:scale(1.04); }
+
+    .card img {
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      background:#000;
+    }
+
+    .info { padding:14px; }
+    .info h3 { margin:0 0 8px; font-size:18px; }
+    .info a {
+      color:#4f46e5;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:bold;
+    }
+
+    footer {
+      text-align:center;
+      padding:20px;
+      opacity:.4;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎮 Game Dev Space</h1>
+  <button id="postBtn">Postar jogo</button>
+</header>
+
+<main>
+
+  <div class="form" id="form">
+    <input id="name" placeholder="Nome do jogo" />
+    <input id="url" placeholder="Link do jogo (HTML)" />
+    <input id="img" placeholder="Link da thumbnail" />
+    <button id="publishBtn">Publicar</button>
+  </div>
+
+  <div class="grid" id="games"></div>
+
+</main>
+
+<footer>
+  Game Dev Space • Biblioteca aberta para jogos HTML
+</footer>
+
+<script>
+  const grid = document.getElementById('games');
+  const form = document.getElementById('form');
+  const postBtn = document.getElementById('postBtn');
+  const publishBtn = document.getElementById('publishBtn');
+
+  const defaultGames = [
+    {
+      name: 'Exemplo Game',
+      url: 'https://exemplo.github.io/game',
+      img: 'https://via.placeholder.com/400x200'
+    }
+  ];
+
+  let games = [];
+
+  try {
+    games = JSON.parse(localStorage.getItem('games')) || defaultGames;
+  } catch (e) {
+    games = defaultGames;
+  }
+
+  function save() {
+    localStorage.setItem('games', JSON.stringify(games));
+  }
+
+  function render() {
+    grid.innerHTML = '';
+    games.forEach(g => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${g.img}" onerror="this.src='https://via.placeholder.com/400x200'" />
+        <div class="info">
+          <h3>${g.name}</h3>
+          <a href="${g.url}" target="_blank">Jogar</a>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleForm() {
+    form.style.display = form.style.display === 'grid' ? 'none' : 'grid';
+  }
+
+  function addGame() {
+    const name = document.getElementById('name').value.trim();
+    const url = document.getElementById('url').value.trim();
+    const img = document.getElementById('img').value.trim();
+
+    if (!name || !url) {
+      alert('Nome e link são obrigatórios');
+      return;
+    }
+
+    games.unshift({ name, url, img });
+    save();
+    render();
+
+    form.style.display = 'none';
+    document.getElementById('name').value = '';
+    document.getElementById('url').value = '';
+    document.getElementById('img').value = '';
+  }
+
+  postBtn.addEventListener('click', toggleForm);
+  publishBtn.addEventListener('click', addGame);
+
+  render();
+</script>
+
+</body>
+</html>
