@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GAMEHUB | Cloud</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -79,8 +82,6 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; backdrop-filter: blur(5px); }
         .modal-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111827; padding: 40px; border-radius: 12px; z-index: 2001; width: 90%; max-width: 420px; display: none; border: 1px solid var(--accent); }
         input, textarea { width: 100%; padding: 14px; margin: 10px 0; border-radius: 6px; border: 1px solid #1f2937; background: #030712; color: white; box-sizing: border-box; }
-
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -154,7 +155,6 @@
     </div>
 
     <script>
-        // Configuração Firebase do Usuário
         const firebaseConfig = {
             apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
             authDomain: "game-dev-space.firebaseapp.com",
@@ -175,8 +175,6 @@
                 document.getElementById('navUser').innerText = currentUser.nick.toUpperCase();
                 if(currentUser.pic) document.getElementById('navAvatar').src = currentUser.pic;
             }
-            
-            // Ouvir banco de dados em tempo real
             db.collection("games").orderBy("createdAt", "desc").onSnapshot(snapshot => {
                 const gamesList = [];
                 snapshot.forEach(doc => gamesList.push({ id: doc.id, ...doc.data() }));
@@ -189,7 +187,6 @@
             const highGrid = document.getElementById('highGrid');
             mainGrid.innerHTML = '';
             list.forEach(g => mainGrid.innerHTML += createCard(g));
-            
             const sorted = [...list].sort((a,b) => (b.likes || 0) - (a.likes || 0)).slice(0, 4);
             highGrid.innerHTML = '';
             sorted.forEach(g => highGrid.innerHTML += createCard(g));
@@ -215,11 +212,9 @@
             const url = document.getElementById('postUrl').value;
             const desc = document.getElementById('postDesc').value;
             if(!title || !url) return alert("DADOS FALTANDO");
-
             await db.collection("games").add({
                 title, pic, url, desc, likes: 0, likedBy: [],
-                author: currentUser.email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                author: currentUser.email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             closeModals();
         }
@@ -228,30 +223,24 @@
             const doc = await db.collection("games").doc(id).get();
             const g = doc.data();
             const likeBtn = document.getElementById('likeBtn');
-            
             document.getElementById('pgTitle').innerText = g.title;
             document.getElementById('descTitle').innerText = g.title;
             document.getElementById('descText').innerText = g.desc || "SEM DESCRICAO.";
             document.getElementById('gameIframe').src = g.url;
             document.getElementById('likeCount').innerText = g.likes || 0;
-            
             if(currentUser && g.likedBy?.includes(currentUser.email)) likeBtn.classList.add('liked');
             else likeBtn.classList.remove('liked');
-
             document.getElementById('gamePage').style.display = 'flex';
-
             likeBtn.onclick = async () => {
                 if(!currentUser) return alert("FACA LOGIN");
                 const freshDoc = await db.collection("games").doc(id).get();
                 if(freshDoc.data().likedBy?.includes(currentUser.email)) return;
-                
                 await db.collection("games").doc(id).update({
                     likes: firebase.firestore.FieldValue.increment(1),
                     likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.email)
                 });
                 likeBtn.classList.add('liked');
             };
-
             const delBtn = document.getElementById('btnDelete');
             if(currentUser && (currentUser.email === g.author || currentUser.email === ADMIN)) {
                 delBtn.style.display = 'block';
@@ -263,10 +252,9 @@
 
         function handleAuth() {
             const email = document.getElementById('emailIn').value;
-            const pass = document.getElementById('passIn').value;
             const nick = document.getElementById('nickIn').value;
             const pic = document.getElementById('picIn').value;
-            if(!email || !pass) return alert("LOGIN REQUERIDO");
+            if(!email) return alert("E-MAIL REQUERIDO");
             currentUser = { email, nick: nick || "PLAYER", pic: pic || "" };
             sessionStorage.setItem('gh_sess', JSON.stringify(currentUser));
             location.reload();
@@ -276,20 +264,13 @@
             const t = document.getElementById('searchInput').value.toLowerCase();
             db.collection("games").get().then(snap => {
                 const filtered = [];
-                snap.forEach(doc => {
-                    if(doc.data().title.toLowerCase().includes(t)) filtered.push({id: doc.id, ...doc.data()});
-                });
+                snap.forEach(doc => { if(doc.data().title.toLowerCase().includes(t)) filtered.push({id: doc.id, ...doc.data()}); });
                 render(filtered);
                 document.getElementById('highSection').style.display = t ? 'none' : 'block';
             });
         }
 
-        function toggleFull() {
-            const el = document.getElementById("gameIframe");
-            if (el.requestFullscreen) el.requestFullscreen();
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        }
-
+        function toggleFull() { const el = document.getElementById("gameIframe"); if (el.requestFullscreen) el.requestFullscreen(); else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); }
         function openModal(id) { document.getElementById('modalOverlay').style.display='block'; document.getElementById(id).style.display='block'; }
         function closeModals() { document.getElementById('modalOverlay').style.display='none'; document.getElementById('authModal').style.display='none'; document.getElementById('postModal').style.display='none'; }
         function closeGame() { document.getElementById('gamePage').style.display='none'; document.getElementById('gameIframe').src=''; }
