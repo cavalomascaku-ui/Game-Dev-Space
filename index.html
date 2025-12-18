@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Game Dev Space V4.1 - FIXED</title>
+<title>Game Dev Space V5.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
@@ -12,67 +12,69 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-:root{
---neon:#22c55e;
---glow:rgba(34,197,94,.7);
---bg:#050510;
-}
+:root{--neon:#22c55e;--bg:#050510}
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:var(--bg);color:#fff}
 
-/* FUNDO HEX NEON */
+/* FUNDO HEX */
 .hex-bg{
-position:fixed;inset:0;z-index:-2;
+position:fixed;inset:0;z-index:-1;
 background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MiIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTI2IDBMNTIgMTVWNDVMMjYgNjBMMCA0NVYxNUwyNiAwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDM0LDE5Nyw5NCwuMTUpIi8+PC9zdmc+");
-animation:pulse 5s infinite alternate;
+animation:pulse 6s infinite alternate
 }
 @keyframes pulse{
-0%{filter:drop-shadow(0 0 4px var(--glow))}
-100%{filter:drop-shadow(0 0 18px var(--glow))}
+0%{filter:drop-shadow(0 0 5px #22c55e44)}
+100%{filter:drop-shadow(0 0 18px #22c55eaa)}
 }
 
-header{text-align:center;padding:40px 20px}
-h1{font-family:Orbitron;color:var(--neon);text-shadow:0 0 20px var(--glow)}
+header{text-align:center;padding:40px}
+h1{font-family:Orbitron;color:var(--neon)}
 
 .top-nav{
-position:absolute;top:20px;right:20px;display:flex;gap:10px
+position:absolute;top:20px;right:20px;
+display:flex;gap:10px
 }
-button{cursor:pointer;font-weight:bold;border:none}
-.btn{background:var(--neon);color:#000;padding:10px 18px;border-radius:20px}
+.btn{
+background:var(--neon);color:#000;
+border:none;padding:10px 18px;
+border-radius:20px;font-weight:bold;cursor:pointer
+}
 
 .user-info{
 display:flex;gap:10px;align-items:center;
 background:#0008;border:1px solid var(--neon);
-padding:5px 15px;border-radius:30px;cursor:pointer
+padding:6px 14px;border-radius:30px;cursor:pointer
 }
 .user-info img{width:30px;height:30px;border-radius:50%}
 
 .search-bar{
-max-width:500px;margin:20px auto;display:flex;
-background:#000;border:1px solid var(--neon);border-radius:30px
+max-width:500px;margin:20px auto;
+display:flex;border-radius:30px;
+overflow:hidden;border:1px solid var(--neon)
 }
 .search-bar input{
-flex:1;background:none;border:none;color:#fff;padding:12px 20px;outline:none
+flex:1;background:#000;border:none;
+color:#fff;padding:12px 20px;outline:none
 }
 .search-bar button{background:var(--neon);padding:0 20px}
 
 .grid{
 max-width:1200px;margin:auto;
-display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
 gap:25px;padding:20px
 }
 .card{
-background:#0f1025;border:1px solid #ffffff22;
-border-radius:12px;overflow:hidden;cursor:pointer;
-transition:.3s;position:relative
+background:#0f1025;border-radius:12px;
+border:1px solid #ffffff22;
+overflow:hidden;cursor:pointer
 }
-.card:hover{transform:translateY(-6px);box-shadow:0 0 20px var(--glow)}
 .card img{width:100%;height:150px;object-fit:cover}
-.card-info{text-align:center;padding:10px;font-weight:bold}
+.card-info{padding:10px;font-weight:bold;text-align:center}
 .badge{
 position:absolute;top:10px;right:10px;
-background:#000c;border:1px solid var(--neon);
-padding:4px 10px;border-radius:10px
+background:#000c;border-radius:10px;
+padding:4px 10px;border:1px solid var(--neon)
 }
 
 /* MODAL */
@@ -83,20 +85,15 @@ align-items:center;justify-content:center
 }
 .modal-box{
 background:#1b2838;padding:25px;
-border-radius:8px;width:90%;max-width:400px
+border-radius:10px;width:90%;max-width:420px
 }
 .modal-box input,textarea{
-width:100%;padding:10px;margin:8px 0;
+width:100%;margin:8px 0;padding:10px;
 background:#000;color:#fff;border:1px solid #333
 }
 
 #gameView{display:none;padding:20px;text-align:center}
-iframe{width:100%;height:70vh;border:none;border-radius:10px}
-.comment{
-display:flex;gap:10px;background:#0006;
-padding:10px;margin:10px 0;border-radius:5px
-}
-.comment img{width:40px;height:40px;border-radius:5px}
+iframe{width:100%;height:70vh;border:none;border-radius:12px}
 </style>
 </head>
 <body>
@@ -105,7 +102,7 @@ padding:10px;margin:10px 0;border-radius:5px
 
 <header>
 <div class="top-nav">
-<button class="btn" onclick="adminLogin()">ADMIN</button>
+<button class="btn" onclick="openPost()">POSTAR JOGO</button>
 <div id="userTrigger" class="user-info" style="display:none" onclick="openProfile()">
 <img id="uPic"><span id="uNick"></span>
 </div>
@@ -122,32 +119,44 @@ onclick="auth.signOut().then(()=>location.reload())">SAIR</button>
 </div>
 </header>
 
+<div id="home"><div class="grid" id="mainGrid"></div></div>
+<div id="gameView"></div>
+
+<!-- LOGIN -->
 <div id="authModal" class="modal">
 <div class="modal-box">
-<h3>LOGIN / REGISTRO</h3>
+<h3>LOGIN</h3>
 <input id="email" placeholder="Email">
 <input id="pass" type="password" placeholder="Senha">
 <button class="btn" style="width:100%" onclick="handleAuth()">ENTRAR</button>
-<button onclick="authModal.style.display='none'" style="width:100%;margin-top:10px">FECHAR</button>
+<button class="btn" style="width:100%;background:#333" onclick="authModal.style.display='none'">CANCELAR</button>
 </div>
 </div>
 
+<!-- PERFIL -->
 <div id="profModal" class="modal">
 <div class="modal-box">
 <h3>MEU PERFIL</h3>
 <input id="nickField" placeholder="Nick">
 <input id="picField" placeholder="URL da Foto">
-<input id="linkField" placeholder="Rede social">
-<button class="btn" style="width:100%" onclick="saveProf()">SALVAR</button>
-<button onclick="profModal.style.display='none'" style="width:100%;margin-top:10px">VOLTAR</button>
+<input id="linkField" placeholder="Rede social (opcional)">
+<button class="btn" onclick="saveProf()">SALVAR</button>
+<button class="btn" style="background:#333" onclick="profModal.style.display='none'">CANCELAR</button>
 </div>
 </div>
 
-<div id="home">
-<div class="grid" id="mainGrid"></div>
+<!-- POST GAME -->
+<div id="postModal" class="modal">
+<div class="modal-box">
+<h3>POSTAR JOGO</h3>
+<input id="gName" placeholder="Nome do jogo">
+<textarea id="gDesc" placeholder="Descrição"></textarea>
+<input id="gImg" placeholder="URL da imagem">
+<input id="gUrl" placeholder="Link do jogo">
+<button class="btn" onclick="postGame()">PUBLICAR</button>
+<button class="btn" style="background:#333" onclick="postModal.style.display='none'">CANCELAR</button>
 </div>
-
-<div id="gameView"></div>
+</div>
 
 <script>
 firebase.initializeApp({
@@ -156,9 +165,7 @@ authDomain:"game-dev-space.firebaseapp.com",
 databaseURL:"https://game-dev-space-default-rtdb.firebaseio.com"
 });
 const auth=firebase.auth(),db=firebase.database();
-const ADMIN_PASS="15423993946";
-
-let allGames=[],currentGameId="",isAdmin=false;
+let allGames=[],currentGameId="";
 
 /* AUTH */
 function handleAuth(){
@@ -193,10 +200,26 @@ profModal.style.display="flex";
 }
 function saveProf(){
 db.ref("profiles/"+auth.currentUser.uid).set({
-nick:nickField.value||"Jogador",
-pic:picField.value||"",
-link:linkField.value||""
+nick:nickField.value,
+pic:picField.value,
+link:linkField.value
 }).then(()=>profModal.style.display="none");
+}
+
+/* POST GAME */
+function openPost(){
+if(!auth.currentUser)return alert("Faça login");
+postModal.style.display="flex";
+}
+function postGame(){
+db.ref("games").push({
+name:gName.value,
+desc:gDesc.value,
+img:gImg.value,
+url:gUrl.value,
+likes:0,
+date:Date.now()
+}).then(()=>postModal.style.display="none");
 }
 
 /* GAMES */
@@ -205,16 +228,16 @@ allGames=[];
 s.forEach(c=>allGames.push({id:c.key,...c.val()}));
 render(allGames);
 });
-
 function render(list){
 mainGrid.innerHTML="";
 list.sort((a,b)=>(b.likes||0)-(a.likes||0)).forEach(g=>{
 const d=document.createElement("div");
 d.className="card";
-d.innerHTML=`<div class="badge">❤ ${g.likes||0}</div>
+d.innerHTML=`
+<div class="badge">❤ ${g.likes||0}</div>
 <img src="${g.img}">
 <div class="card-info">${g.name}</div>`;
-d.onclick=()=>openGame(g.id);
+d.onclick=()=>openGame(g);
 mainGrid.appendChild(d);
 });
 }
@@ -223,77 +246,24 @@ const t=inpSearch.value.toLowerCase();
 render(allGames.filter(g=>g.name.toLowerCase().includes(t)));
 }
 
-/* GAME */
-function openGame(id){
-currentGameId=id;
+/* GAME VIEW */
+function openGame(g){
 home.style.display="none";
 gameView.style.display="block";
-db.ref("games/"+id).once("value").then(s=>{
-const g=s.val();
+currentGameId=g.id;
 gameView.innerHTML=`
 <button class="btn" onclick="back()">VOLTAR</button>
 <h2>${g.name}</h2>
+<p>${g.desc||""}</p>
 <iframe src="${g.url}"></iframe>
-<button class="btn" onclick="giveLike()">CURTIR ❤ (${g.likes||0})</button>
-<div>
-<textarea id="msg" placeholder="Comentário"></textarea>
-<button class="btn" onclick="sendCom()">POSTAR</button>
-<div id="comList"></div>
-</div>`;
-loadCom(id);
-});
+<button class="btn" onclick="like()">CURTIR ❤</button>`;
 }
-
 function back(){
 gameView.style.display="none";
 home.style.display="block";
 }
-
-/* LIKE */
-function giveLike(){
-if(!auth.currentUser)return alert("Faça login");
-const uid=auth.currentUser.uid;
-db.ref(`likes/${currentGameId}/${uid}`).once("value").then(s=>{
-if(s.exists())return alert("Já curtiu");
-db.ref(`likes/${currentGameId}/${uid}`).set(true);
+function like(){
 db.ref("games/"+currentGameId+"/likes").transaction(l=>(l||0)+1);
-});
-}
-
-/* COMMENTS */
-function sendCom(){
-if(!auth.currentUser||!msg.value)return;
-db.ref("profiles/"+auth.currentUser.uid).once("value").then(s=>{
-const p=s.val()||{};
-db.ref("comments/"+currentGameId).push({
-nick:p.nick||"Jogador",
-pic:p.pic||"",
-text:msg.value
-});
-msg.value="";
-});
-}
-function loadCom(id){
-const r=db.ref("comments/"+id);
-r.off();
-r.on("value",s=>{
-comList.innerHTML="";
-s.forEach(c=>{
-const d=c.val();
-comList.innerHTML=`<div class="comment">
-<img src="${d.pic}">
-<div><b>${d.nick}</b><p>${d.text}</p></div>
-</div>`+comList.innerHTML;
-});
-});
-}
-
-/* ADMIN */
-function adminLogin(){
-if(prompt("Senha")!==ADMIN_PASS)return;
-isAdmin=true;
-const n=prompt("Nome"),i=prompt("Capa"),u=prompt("URL");
-if(n&&u)db.ref("games").push({name:n,img:i,url:u,likes:0});
 }
 </script>
 </body>
