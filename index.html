@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHUB | Admin Panel</title>
+    <title>GameHUB | Premium</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -11,7 +11,7 @@
         :root {
             --bg-dark: #0f172a;
             --accent: #8b5cf6;
-            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-bg: rgba(30, 41, 59, 0.8);
             --text: #f8fafc;
             --danger: #ef4444;
         }
@@ -19,212 +19,221 @@
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #2e1065, #0f172a);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background: var(--bg-dark);
             color: var(--text);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Linhas Brancas ao Fundo */
+        .background-lines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100px 100px;
+            animation: moveLines 20s linear infinite;
+        }
+
+        @keyframes moveLines {
+            from { background-position: 0 0; }
+            to { background-position: 100px 100px; }
         }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 30px;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .search-container { flex-grow: 1; max-width: 500px; margin: 0 20px; position: relative; }
         .search-container input {
-            width: 100%; padding: 10px 40px; border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; outline: none;
+            width: 100%; padding: 12px 45px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4);
+            color: white; outline: none; transition: 0.3s;
         }
-        .search-icon { position: absolute; left: 15px; top: 10px; color: #64748b; }
+        .search-container input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+        .search-icon { position: absolute; left: 15px; top: 12px; color: #64748b; }
 
-        .nav-actions { display: flex; align-items: center; gap: 15px; }
-        
         .user-profile {
             cursor: pointer; display: flex; align-items: center; gap: 10px;
-            padding: 5px 12px; border-radius: 50px; background: var(--card-bg);
-            border: 1px solid var(--accent); transition: 0.3s;
+            padding: 8px 15px; border-radius: 12px; background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #334155; }
+        .section-title { font-size: 1.5rem; font-weight: 800; margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
 
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; margin-top: 30px; }
-
+        /* Grid e Cards */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
         .game-card {
-            background: var(--card-bg); border-radius: 15px; overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; cursor: pointer;
+            background: var(--card-bg); border-radius: 16px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; cursor: pointer;
         }
-        .game-card:hover { transform: scale(1.03); border-color: var(--accent); }
-        .game-thumb { width: 100%; height: 150px; object-fit: cover; }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .game-thumb { width: 100%; height: 160px; object-fit: cover; }
         .game-info { padding: 15px; }
-        .game-title { font-weight: bold; font-size: 1.1rem; }
 
-        .poki-view {
+        /* Player Page */
+        .game-page {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark); z-index: 2000; display: none; flex-direction: column;
+            background: var(--bg-dark); z-index: 1000; display: none; flex-direction: column;
         }
-        .poki-toolbar { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; }
-        .poki-frame { flex-grow: 1; border: none; width: 100%; height: 100%; background: #000; }
+        .game-header { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; }
+        .game-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 40px; }
+        .iframe-container { width: 90%; max-width: 1000px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; position: relative; margin-top: 20px; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .game-details { width: 90%; max-width: 1000px; margin-top: 20px; text-align: left; }
 
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); z-index: 1000; display: none; backdrop-filter: blur(5px);
-        }
-        .modal-box {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #1e293b; padding: 30px; border-radius: 20px; z-index: 1001;
-            width: 90%; max-width: 400px; display: none; border: 1px solid var(--accent);
-        }
+        /* Modais */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1100; display: none; }
+        .modal-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 30px; border-radius: 20px; z-index: 1101; width: 90%; max-width: 400px; display: none; }
 
-        input, textarea {
-            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px;
-            border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box;
-        }
-
-        .btn-main {
-            background: var(--accent); color: white; border: none; padding: 12px 20px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-
-        .btn-danger { background: var(--danger); }
-
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-ghost { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
+        
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div class="background-lines"></div>
+
     <header>
-        <div style="font-weight: 900; color: var(--accent); font-size: 1.4rem;">GAMEHUB</div>
+        <div style="font-weight: 900; color: var(--accent); font-size: 1.6rem; letter-spacing: -1px;">GAMEHUB</div>
         
         <div class="search-container">
-            <i data-lucide="search" class="search-icon" style="width:18px"></i>
-            <input type="text" id="searchInput" placeholder="Pesquisar jogo..." oninput="searchGames()">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Pesquisar jogos incríveis..." oninput="searchGames()">
         </div>
 
-        <div class="nav-actions">
-            <button class="btn-main" onclick="openPostModal()" style="width: auto;">
-                <i data-lucide="plus"></i> Postar
-            </button>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn-main" onclick="openPostModal()"><i data-lucide="plus-circle"></i> Postar</button>
             <div class="user-profile" onclick="openAuthModal()">
-                <img src="" id="userImg" class="user-avatar">
-                <span id="userName">Entrar / Registrar</span>
+                <img src="" id="userImg" class="hidden" style="width:30px; height:30px; border-radius:50%">
+                <span id="userName">Entrar</span>
             </div>
         </div>
     </header>
 
     <div class="container">
-        <h2 id="sectionTitle">Mais Recentes</h2>
+        <div id="highlightsSection">
+            <div class="section-title"><i data-lucide="zap" style="color:#fbbf24"></i> Em Alta</div>
+            <div class="game-grid" id="highlightsGrid"></div>
+        </div>
+
+        <div class="section-title"><i data-lucide="layout-grid"></i> Explorar</div>
         <div class="game-grid" id="mainGrid"></div>
+    </div>
+
+    <div class="game-page" id="gamePage">
+        <div class="game-header">
+            <button class="btn-ghost" onclick="closeGame()"><i data-lucide="arrow-left"></i> Voltar</button>
+            <div id="gamePageTitle" style="font-weight: 800; font-size: 1.2rem;">Nome do Jogo</div>
+            <div style="display: flex; gap: 10px;">
+                <button id="btnFullscreen" class="btn-ghost" title="Tela Cheia"><i data-lucide="maximize"></i></button>
+                <button id="btnDelete" class="btn-main btn-danger hidden" style="background:#ef4444"><i data-lucide="trash-2"></i></button>
+            </div>
+        </div>
+        <div class="game-content">
+            <div class="iframe-container" id="pokiContainer">
+                <iframe src="" id="gameIframe"></iframe>
+            </div>
+            <div class="game-details">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 id="detTitle" style="margin: 0;"></h2>
+                    <button id="likeBtn" style="background:none; border:none; color:#ef4444; font-size:1.5rem; cursor:pointer; display:flex; align-items:center; gap:8px">
+                        <i data-lucide="heart"></i> <span id="detLikes">0</span>
+                    </button>
+                </div>
+                <p id="detAuthor" style="color: var(--accent); font-weight: bold; margin: 10px 0;"></p>
+                <p id="detDesc" style="line-height: 1.6; color: #94a3b8;"></p>
+            </div>
+        </div>
     </div>
 
     <div class="modal-overlay" id="overlay" onclick="closeModals()"></div>
     <div class="modal-box" id="authModal">
-        <h3 id="authTitle">Login</h3>
+        <h3>Acessar Conta</h3>
         <input type="email" id="authEmail" placeholder="E-mail">
         <input type="password" id="authPass" placeholder="Senha">
-        <input type="text" id="authNick" placeholder="Nickname (apenas registro)">
-        <input type="text" id="authPic" placeholder="URL da foto (apenas registro)">
-        <button class="btn-main" onclick="handleAuth()">Entrar / Registrar</button>
-        <p style="font-size: 0.8rem; text-align: center; color: #94a3b8; margin-top: 15px;">Se o e-mail não existir, criaremos uma conta nova!</p>
+        <input type="text" id="authNick" placeholder="Seu Nick (Novo cadastro)">
+        <button class="btn-main" style="width:100%" onclick="handleAuth()">Confirmar</button>
     </div>
 
     <div class="modal-box" id="postModal">
-        <h3>Postar Novo Jogo</h3>
-        <input type="text" id="gameTitle" placeholder="Título">
-        <input type="text" id="gamePic" placeholder="URL da Capa">
-        <input type="text" id="gameUrl" placeholder="Link do Jogo (Embed/URL)">
-        <button class="btn-main" onclick="saveGame()">Publicar</button>
-    </div>
-
-    <div class="poki-view" id="pokiPlayer">
-        <div class="poki-toolbar">
-            <div id="pokiTitle" style="font-weight: bold;">Nome do Jogo</div>
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <button id="pokiLikeBtn" style="background:none; border:none; color:#ef4444; cursor:pointer; display:flex; align-items:center; gap:5px">
-                    <i data-lucide="heart"></i> <span id="pokiLikeCount">0</span>
-                </button>
-                <button id="pokiDeleteBtn" class="btn-main btn-danger hidden" style="padding: 5px 10px; width: auto;">
-                    <i data-lucide="trash-2"></i> Apagar
-                </button>
-                <button onclick="closePoki()" style="background:none; border:none; color:white; cursor:pointer;">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-        </div>
-        <iframe src="" id="pokiIframe" class="poki-frame"></iframe>
+        <h3>Novo Jogo</h3>
+        <input type="text" id="gameTitle" placeholder="Título do Jogo">
+        <input type="text" id="gamePic" placeholder="URL da Imagem de Capa">
+        <input type="text" id="gameUrl" placeholder="Link do Jogo (URL)">
+        <textarea id="gameDesc" placeholder="Escreva uma descrição sobre o jogo..." rows="4"></textarea>
+        <button class="btn-main" style="width:100%" onclick="saveGame()">Publicar Agora</button>
     </div>
 
     <script>
         const ADMIN_EMAIL = "contapropredro@gmail.com";
-        let users = JSON.parse(localStorage.getItem('gh_db_users')) || [];
-        let games = JSON.parse(localStorage.getItem('gh_db_games')) || [];
-        let currentUser = JSON.parse(sessionStorage.getItem('gh_session')) || null;
+        let users = JSON.parse(localStorage.getItem('gh_v3_users')) || [];
+        let games = JSON.parse(localStorage.getItem('gh_v3_games')) || [];
+        let currentUser = JSON.parse(sessionStorage.getItem('gh_v3_sess')) || null;
 
         function init() {
             if(currentUser) {
                 document.getElementById('userName').innerText = currentUser.nick;
-                document.getElementById('userImg').src = currentUser.pic || 'https://api.dicebear.com/7.x/pixel-art/svg';
+                const img = document.getElementById('userImg');
+                img.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.nick}`;
+                img.classList.remove('hidden');
             }
-            renderGames(games);
+            refreshGrids();
             lucide.createIcons();
         }
 
-        // Sistema de Login/Registro
-        function openAuthModal() {
-            if(currentUser) {
-                if(confirm("Deseja sair da conta?")) {
-                    sessionStorage.removeItem('gh_session');
-                    location.reload();
-                }
-                return;
-            }
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('authModal').style.display = 'block';
+        function refreshGrids() {
+            renderGrid(games, 'mainGrid');
+            const topGames = [...games].sort((a,b) => b.likes - a.likes).slice(0, 4);
+            renderGrid(topGames, 'highlightsGrid');
         }
 
+        function renderGrid(data, containerId) {
+            const grid = document.getElementById(containerId);
+            grid.innerHTML = data.length ? '' : '<p style="color:#64748b">Nenhum jogo postado ainda...</p>';
+            data.forEach(game => {
+                grid.innerHTML += `
+                    <div class="game-card" onclick="openGame(${game.id})">
+                        <img src="${game.pic}" class="game-thumb">
+                        <div class="game-info">
+                            <div style="font-weight:bold">${game.title}</div>
+                            <div style="display:flex; align-items:center; gap:5px; font-size:0.8rem; color:#ef4444; margin-top:5px">
+                                <i data-lucide="heart" style="width:12px"></i> ${game.likes}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        // Login / Postagem (Lógica simplificada conforme solicitado)
         function handleAuth() {
             const email = document.getElementById('authEmail').value;
             const pass = document.getElementById('authPass').value;
             const nick = document.getElementById('authNick').value;
-            const pic = document.getElementById('authPic').value;
-
-            if(!email || !pass) return alert("E-mail e senha obrigatórios!");
-
+            if(!email || !pass) return alert("Preencha e-mail e senha");
             let user = users.find(u => u.email === email);
-
-            if(user) {
-                if(user.pass !== pass) return alert("Senha incorreta!");
-            } else {
-                if(!nick) return alert("Para novas contas, preencha o Nickname!");
-                user = { email, pass, nick, pic };
+            if(!user) {
+                user = { email, pass, nick: nick || email.split('@')[0] };
                 users.push(user);
-                localStorage.setItem('gh_db_users', JSON.stringify(users));
+                localStorage.setItem('gh_v3_users', JSON.stringify(users));
             }
-
-            sessionStorage.setItem('gh_session', JSON.stringify(user));
+            sessionStorage.setItem('gh_v3_sess', JSON.stringify(user));
             location.reload();
         }
 
-        // Postagem
         function openPostModal() {
-            if(!currentUser) return alert("Faça login para postar jogos!");
+            if(!currentUser) return openAuthModal();
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('postModal').style.display = 'block';
         }
@@ -233,88 +242,21 @@
             const title = document.getElementById('gameTitle').value;
             const pic = document.getElementById('gamePic').value;
             const url = document.getElementById('gameUrl').value;
-
+            const desc = document.getElementById('gameDesc').value;
             if(!title || !url) return alert("Título e Link são obrigatórios!");
 
-            const newGame = {
+            games.unshift({
                 id: Date.now(),
-                title,
-                pic: pic || 'https://placehold.co/600x400/2e1065/white?text=Game',
-                url,
-                likes: 0,
-                likedBy: [],
-                author: currentUser.email
-            };
-
-            games.unshift(newGame);
-            localStorage.setItem('gh_db_games', JSON.stringify(games));
+                title, pic, url, desc,
+                likes: 0, likedBy: [],
+                author: currentUser.email,
+                authorNick: currentUser.nick
+            });
+            localStorage.setItem('gh_v3_games', JSON.stringify(games));
             location.reload();
         }
 
-        function renderGames(data) {
-            const grid = document.getElementById('mainGrid');
-            grid.innerHTML = '';
-            data.forEach(game => {
-                grid.innerHTML += `
-                    <div class="game-card" onclick="openPoki(${game.id})">
-                        <img src="${game.pic}" class="game-thumb">
-                        <div class="game-info">
-                            <div class="game-title">${game.title}</div>
-                            <div style="font-size:0.8rem; color:#64748b; margin-top:5px">Postado por: ${game.author === ADMIN_EMAIL ? 'Admin' : 'Usuário'}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            lucide.createIcons();
-        }
-
-        // Player e Permissões
-        function openPoki(id) {
+        // Página do Jogo
+        function openGame(id) {
             const game = games.find(g => g.id === id);
-            document.getElementById('pokiTitle').innerText = game.title;
-            document.getElementById('pokiIframe').src = game.url;
-            document.getElementById('pokiLikeCount').innerText = game.likes;
-            document.getElementById('pokiPlayer').style.display = 'flex';
-
-            // Lógica do Like
-            const likeBtn = document.getElementById('pokiLikeBtn');
-            likeBtn.onclick = () => {
-                if(!currentUser) return alert("Login necessário para curtir!");
-                if(game.likedBy.includes(currentUser.email)) return alert("Já curtiu!");
-                game.likes++;
-                game.likedBy.push(currentUser.email);
-                document.getElementById('pokiLikeCount').innerText = game.likes;
-                localStorage.setItem('gh_db_games', JSON.stringify(games));
-                renderGames(games);
-            };
-
-            // Lógica de Deletar (Autor ou Você no e-mail específico)
-            const delBtn = document.getElementById('pokiDeleteBtn');
-            if(currentUser && (currentUser.email === game.author || currentUser.email === ADMIN_EMAIL)) {
-                delBtn.classList.remove('hidden');
-                delBtn.onclick = () => {
-                    if(confirm("Tem certeza que deseja apagar este jogo permanentemente?")) {
-                        games = games.filter(g => g.id !== id);
-                        localStorage.setItem('gh_db_games', JSON.stringify(games));
-                        location.reload();
-                    }
-                };
-            } else {
-                delBtn.classList.add('hidden');
-            }
-        }
-
-        function searchGames() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = games.filter(g => g.title.toLowerCase().includes(term));
-            renderGames(filtered);
-            document.getElementById('sectionTitle').innerText = term ? `Buscando: ${term}` : "Mais Recentes";
-        }
-
-        function closePoki() { document.getElementById('pokiPlayer').style.display = 'none'; document.getElementById('pokiIframe').src = ''; }
-        function closeModals() { document.getElementById('overlay').style.display = 'none'; document.querySelectorAll('.modal-box').forEach(m => m.style.display='none'); }
-
-        init();
-    </script>
-</body>
-</html>
+            const page = document.getElementById('gamePage
