@@ -3,1871 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHUB | Portal de Jogos Online</title>
-    <!-- Font Inter para um visual moderno -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-    <!-- Icones Lucide -->
+    <title>GameHUB | Portal de Jogos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Firebase CDN Imports -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-storage-compat.js"></script>
-
+    
     <style>
-        /* Variáveis de Cores (Tema Escuro) */
         :root {
-            --bg-primary: #1e1e1e;
-            --bg-secondary: #2c2c2c;
-            --text-color: #f0f0f0;
-            --accent-color: #6d28d9; /* Violeta */
+            --bg-dark: #0f172a;
+            --accent: #8b5cf6;
             --accent-hover: #7c3aed;
-            --card-border: #383838;
-            --skeleton-bg: linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
         }
 
-        /* Base e Reset */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
+        /* Fundo Animado */
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-color);
-            line-height: 1.6;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #2e1065, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text);
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        header {
             display: flex;
-            flex-direction: column;
-            padding-top: 80px; /* Espaço para o header fixo */
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* Tipografia */
-        h1, h2, h3 {
-            color: var(--text-color);
-            font-weight: 700;
-        }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent); display: flex; align-items: center; gap: 10px; }
 
-        /* Botões Padrão */
-        .btn {
-            background-color: var(--accent-color);
+        /* Sistema de Perfil */
+        .profile-area { display: flex; align-items: center; gap: 15px; }
+        .user-badge { display: flex; align-items: center; gap: 10px; background: var(--card-bg); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--accent); }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+
+        /* Botão Postar */
+        .btn-post {
+            background: var(--accent);
             color: white;
-            padding: 10px 20px;
             border: none;
+            padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            font-weight: 600;
-            display: inline-flex;
+            font-weight: bold;
+            display: flex;
             align-items: center;
             gap: 8px;
-            text-decoration: none;
+            transition: 0.3s;
         }
+        .btn-post:hover { transform: scale(1.05); background: var(--accent-hover); }
 
-        .btn:hover {
-            background-color: var(--accent-hover);
-            box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
-        }
-
-        .btn-secondary {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--card-border);
-            color: var(--text-color);
-        }
-
-        .btn-secondary:hover {
-            background-color: #3a3a3a;
-            box-shadow: none;
-        }
-
-        .btn-danger {
-            background-color: #ef4444;
-        }
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-
-        /* Formulários e Inputs */
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            color: var(--text-color);
-            transition: border-color 0.2s;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            border-color: var(--accent-color);
-            outline: none;
-        }
-        
-        textarea {
-            resize: vertical;
-        }
-
-        /* Layout Principal */
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        /* Header Fixo */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--bg-secondary);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--accent-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--accent-color);
+        /* Filtros */
+        .filters { display: flex; gap: 15px; margin: 30px 0; }
+        .filter-btn {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: 0.3s;
         }
-        .avatar:hover {
-            transform: scale(1.05);
-        }
+        .filter-btn.active { background: var(--accent); border-color: var(--accent); }
 
-        /* Game Grid */
+        /* Grid de Jogos */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 20px;
-            padding: 20px 0;
         }
 
-        /* Game Card */
         .game-card {
-            background-color: var(--bg-secondary);
+            background: var(--card-bg);
             border-radius: 12px;
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--card-border);
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .game-card-thumb {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .game-card-content {
-            padding: 15px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .game-card-content h3 {
-            font-size: 1.25rem;
-            margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .game-card-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #ccc;
-            margin-top: auto; /* Empurra para baixo */
-            padding-top: 10px;
-            border-top: 1px dashed var(--card-border);
-        }
-
-        .game-card-likes, .game-card-views {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Banner de Destaque */
-        .hero-banner {
-            margin: 20px 0;
-            padding: 30px;
-            background-color: var(--accent-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(109, 40, 217, 0.3);
-            text-align: center;
-        }
-        .hero-banner h1 {
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 10px;
-        }
-        .hero-banner p {
-            color: #f0f0f0;
-            font-size: 1.1rem;
-        }
-
-        /* Filtros e Busca */
-        .controls-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 20px 0;
-            align-items: center;
-        }
-        
-        .controls-bar input, .controls-bar select {
-            flex: 1;
-            min-width: 150px;
-            margin-bottom: 0;
-        }
-
-        /* Skeleton Loading */
-        .skeleton-loader {
-            background: var(--skeleton-bg);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite linear;
-            border-radius: 8px;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .skeleton-card {
-            background-color: var(--bg-secondary);
-            border-radius: 12px;
-            overflow: hidden;
-            padding-bottom: 15px;
-        }
-
-        .skeleton-thumb {
-            height: 180px;
-            margin-bottom: 10px;
-        }
-
-        .skeleton-text {
-            height: 15px;
-            margin: 0 15px 10px 15px;
-        }
-        
-        .skeleton-long { width: 90%; }
-        .skeleton-short { width: 50%; }
-
-        /* Toast de Feedback */
-        #toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast {
-            background-color: var(--bg-secondary);
-            color: var(--text-color);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
-            transform: translateX(100%);
-            min-width: 250px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        .toast-success { border-left: 5px solid #22c55e; }
-        .toast-error { border-left: 5px solid #ef4444; }
-        .toast-info { border-left: 5px solid var(--accent-color); }
-
-        /* Modal (para Auth/Game Details) */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            backdrop-filter: blur(5px);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s;
-        }
-        .modal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background-color: var(--bg-primary);
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
-            transform: scale(0.9);
-            transition: transform 0.3s;
         }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .game-thumb { width: 100%; height: 140px; object-fit: cover; }
+        .game-info { padding: 12px; }
+        .game-title { font-weight: bold; font-size: 1rem; margin-bottom: 5px; }
+        .game-meta { font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; }
 
-        .modal.open .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        /* Game Detail View */
-        #game-detail-view {
-            padding: 20px 0;
+        /* Modal Estilo Poki */
+        .game-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 1000;
             display: none;
-        }
-
-        .game-iframe-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            overflow: hidden;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            background-color: var(--bg-secondary);
-        }
-
-        .game-iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .game-info-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .game-info-actions h2 {
-            font-size: 2rem;
-            flex: 1;
-            min-width: 100%;
-        }
-
-        .like-button {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
-            color: #ccc;
-        }
-        .like-button:hover {
-            color: #fca5a5;
-            transform: scale(1.05);
-        }
-        .like-button.liked {
-            color: #ef4444; /* Vermelho vibrante */
-        }
-        .like-button.liked:hover {
-            color: #fca5a5;
-        }
-
-        /* Comentários */
-        .comment-section h3 {
-            margin-bottom: 15px;
-        }
-        
-        .comment-form {
-            margin-bottom: 20px;
-            padding: 20px;
-            background-color: var(--bg-secondary);
-            border-radius: 10px;
-        }
-
-        .comment-list {
-            display: flex;
-            flex-direction: column-reverse; /* Mostrar o mais recente por último (topo) */
-        }
-
-        .comment-item {
-            display: flex;
-            gap: 15px;
-            padding: 15px 0;
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .comment-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .comment-body {
-            flex-grow: 1;
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .comment-author {
-            font-weight: 600;
-            color: var(--accent-color);
-        }
-
-        .comment-date {
-            font-size: 0.8rem;
-            color: #999;
-        }
-
-        .comment-actions button {
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-
-        /* Admin Panel */
-        #admin-view {
-            padding: 20px 0;
-        }
-        
-        #admin-view h2 {
-            margin-bottom: 20px;
-        }
-
-        .admin-section {
-            background-color: var(--bg-secondary);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
-        .admin-game-list {
-            display: flex;
             flex-direction: column;
-            gap: 10px;
         }
-        .admin-game-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .admin-game-item button {
-            margin-left: 10px;
-        }
+        .modal-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; }
+        .iframe-container { flex-grow: 1; background: #000; display: flex; justify-content: center; align-items: center; }
+        iframe { width: 100%; height: 100%; border: none; }
         
-        /* Utility Classes */
-        .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .mt-4 { margin-top: 1rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .p-4 { padding: 1rem; }
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-2 { gap: 0.5rem; }
+        .like-btn { background: none; border: 1px solid #ef4444; color: #ef4444; padding: 5px 15px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .like-btn.liked { background: #ef4444; color: white; }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: row;
-                justify-content: space-between;
-                gap: 10px;
-            }
-            .hero-banner h1 {
-                font-size: 2rem;
-            }
-            .controls-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .controls-bar input, .controls-bar select {
-                min-width: 100%;
-            }
-            .modal-content {
-                max-width: 95%;
-                margin: 20px;
-            }
-            .game-info-actions {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .game-info-actions h2 {
-                min-width: 100%;
-            }
+        /* Modal de Postagem */
+        .form-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #1e293b; padding: 30px; border-radius: 15px; z-index: 1100;
+            width: 90%; max-width: 400px; display: none;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
+        .form-modal input, .form-modal textarea {
+            width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white;
+        }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1050; display: none; }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- Contêiner para Toasts (Feedback) -->
-    <div id="toast-container"></div>
-
-    <!-- Header Fixo -->
-    <header class="header">
-        <div class="header-content">
-            <a href="#" class="logo" onclick="app.showView('home'); return false;">
-                <span data-lucide="gamepad" style="width: 32px; height: 32px; margin-right: 8px;"></span>
-                GameHUB
-            </a>
-            <div class="user-info">
-                <!-- Mostrado quando LOGADO -->
-                <div id="logged-in-state" class="hidden flex items-center gap-2">
-                    <span id="user-nickname" class="text-sm font-semibold"></span>
-                    <img id="user-avatar" class="avatar" src="https://placehold.co/40x40/6d28d9/ffffff?text=U" alt="Avatar" onclick="app.showProfileModal()">
-                    <button class="btn btn-danger btn-secondary" onclick="app.logout()" title="Sair">
-                        <span data-lucide="log-out" style="width: 16px; height: 16px;"></span>
-                        <span class="hidden sm:inline">Sair</span>
-                    </button>
-                    <button id="admin-button" class="btn hidden" onclick="app.showView('admin')" title="Admin">
-                        <span data-lucide="user-cog" style="width: 16px; height: 16px;"></span>
-                        <span class="hidden sm:inline">Admin</span>
-                    </button>
-                </div>
-                <!-- Mostrado quando DESLOGADO -->
-                <div id="logged-out-state">
-                    <button class="btn" onclick="app.showAuthModal('login')">
-                        <span data-lucide="log-in" style="width: 16px; height: 16px;"></span>
-                        Login
-                    </button>
-                </div>
+    <header>
+        <div class="logo"><i data-lucide="gamepad-2"></i> GAMEHUB</div>
+        <div class="profile-area">
+            <button class="btn-post" onclick="toggleModal('postModal')"><i data-lucide="plus-circle"></i> Postar Jogo</button>
+            <div class="user-badge">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="user-avatar" id="navAvatar">
+                <span id="navNickname">Player1</span>
             </div>
         </div>
     </header>
 
-    <!-- Conteúdo Principal -->
-    <main class="container">
-        <!-- 1. Visão Inicial (Home) -->
-        <section id="home-view">
-            <div class="hero-banner">
-                <h1>Bem-vindo ao GameHUB!</h1>
-                <p>Encontre, curta e comente os melhores jogos da nossa comunidade.</p>
+    <div class="container">
+        <div class="filters">
+            <button class="filter-btn active" onclick="sortGames('recent')">Mais Recentes</button>
+            <button class="filter-btn" onclick="sortGames('played')">Mais Jogados</button>
+            <button class="filter-btn" onclick="sortGames('liked')">Mais Curtidos</button>
+        </div>
+
+        <div class="game-grid" id="gameGrid">
             </div>
+    </div>
 
-            <!-- Destaques -->
-            <h2 class="mb-4">🔥 Destaques da Semana</h2>
-            <div id="highlight-games" class="game-grid">
-                <!-- Skeleton Loader para Destaques -->
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
+    <div class="game-modal" id="gamePlayer">
+        <div class="modal-header">
+            <div id="modalTitle" style="font-weight: bold; font-size: 1.2rem;">Nome do Jogo</div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <button class="like-btn" id="modalLikeBtn"><i data-lucide="heart"></i> <span id="likeCount">0</span></button>
+                <button onclick="closeGame()" style="background: none; border: none; color: white; cursor: pointer;"><i data-lucide="x"></i></button>
             </div>
-            <hr style="border-color: var(--card-border); margin: 30px 0;">
-
-            <!-- Controles de Busca/Filtro -->
-            <h2 class="mb-4">🎮 Todos os Jogos</h2>
-            <div class="controls-bar">
-                <input type="text" id="search-input" placeholder="Buscar jogos por nome..." oninput="app.filterGames()">
-                <select id="category-filter" onchange="app.filterGames()">
-                    <option value="">Todas as Categorias</option>
-                    <!-- Categorias populadas dinamicamente -->
-                </select>
-                <select id="sort-order" onchange="app.filterGames()">
-                    <option value="recent">Mais Recentes</option>
-                    <option value="likes">Mais Curtidos</option>
-                </select>
-            </div>
-
-            <!-- Grid de Todos os Jogos -->
-            <div id="all-games-grid" class="game-grid">
-                <!-- Skeleton Loader para Grid Principal -->
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton-loader skeleton-thumb"></div><div class="p-4"><div class="skeleton-loader skeleton-text skeleton-long mb-2"></div><div class="skeleton-loader skeleton-text skeleton-short"></div></div></div>
-            </div>
-        </section>
-
-        <!-- 2. Visão de Detalhes do Jogo (Exibida por JS) -->
-        <section id="game-detail-view" class="hidden">
-            <button class="btn btn-secondary mb-4" onclick="app.showView('home')">
-                <span data-lucide="arrow-left" style="width: 16px; height: 16px;"></span>
-                Voltar
-            </button>
-            <div id="game-details-content">
-                <!-- Conteúdo do jogo, iframe, likes, comentários serão injetados aqui -->
-            </div>
-        </section>
-
-        <!-- 3. Painel de Administração (Exibida por JS) -->
-        <section id="admin-view" class="hidden">
-            <h2>🧑‍💼 Painel de Administração</h2>
-            <div id="admin-content">
-                <!-- Formulário de CRUD de Jogos -->
-                <div class="admin-section">
-                    <h3>Adicionar/Editar Jogo</h3>
-                    <form id="game-form">
-                        <input type="hidden" id="game-id">
-                        <input type="text" id="game-name" placeholder="Nome do Jogo" required>
-                        <textarea id="game-description" placeholder="Descrição" required></textarea>
-                        <select id="game-category" required>
-                            <option value="" disabled selected>Selecione a Categoria</option>
-                            <option value="Ação">Ação</option>
-                            <option value="Aventura">Aventura</option>
-                            <option value="RPG">RPG</option>
-                            <option value="Estratégia">Estratégia</option>
-                            <option value="Puzzle">Puzzle</option>
-                        </select>
-                        <input type="text" id="game-url" placeholder="URL do Jogo (iframe/embed)" required>
-                        <input type="text" id="game-thumbnail" placeholder="URL da Thumbnail (Ex: placehold.co/300x180)" required>
-                        <button type="submit" class="btn" id="game-form-submit">Adicionar Jogo</button>
-                        <button type="button" class="btn btn-secondary hidden" id="game-form-cancel" onclick="app.resetGameForm()">Cancelar Edição</button>
-                    </form>
-                </div>
-
-                <!-- Lista de Jogos -->
-                <div class="admin-section">
-                    <h3>Gerenciar Jogos e Destaques</h3>
-                    <div id="admin-game-list" class="admin-game-list">
-                        <!-- Lista de jogos injetada aqui -->
-                    </div>
-                </div>
-
-                <!-- Gerenciar Comentários (Visão Admin Simplificada) -->
-                <div class="admin-section">
-                    <h3>Gerenciar Comentários (Global)</h3>
-                    <p class="text-sm text-center" style="color:#999">Os comentários são gerenciados na lista de jogos (botão 'Comentários').</p>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modais -->
-    
-    <!-- Modal de Autenticação -->
-    <div id="auth-modal" class="modal" onclick="if(event.target.id === 'auth-modal') app.closeModal('auth-modal')">
-        <div class="modal-content">
-            <button class="modal-close" onclick="app.closeModal('auth-modal')">&times;</button>
-            <h3 id="auth-title" class="text-center mb-4"></h3>
-
-            <!-- Formulário Email/Senha (Login/Cadastro) -->
-            <form id="auth-form">
-                <input type="email" id="auth-email" placeholder="Email" required>
-                <input type="password" id="auth-password" placeholder="Senha" required>
-                <input type="text" id="auth-nickname" placeholder="Nickname (apenas Cadastro)" class="hidden">
-                <button type="submit" class="btn w-full mb-2" id="auth-submit"></button>
-            </form>
-
-            <div class="text-center mb-4" style="color: #999;">ou</div>
-
-            <!-- Login com Google -->
-            <button class="btn btn-secondary w-full" onclick="app.loginGoogle()">
-                <span data-lucide="mail-plus" style="width: 16px; height: 16px;"></span>
-                Entrar com Google
-            </button>
-
-            <!-- Toggle entre Login e Cadastro -->
-            <p id="auth-toggle-text" class="text-center mt-4">
-                <a href="#" style="color: var(--accent-color);" onclick="app.toggleAuthMode(); return false;"></a>
-            </p>
+        </div>
+        <div class="iframe-container">
+            <iframe id="gameIframe" src=""></iframe>
         </div>
     </div>
 
-    <!-- Modal de Perfil do Usuário -->
-    <div id="profile-modal" class="modal" onclick="if(event.target.id === 'profile-modal') app.closeModal('profile-modal')">
-        <div class="modal-content">
-            <button class="modal-close" onclick="app.closeModal('profile-modal')">&times;</button>
-            <h3 class="mb-4">👤 Meu Perfil</h3>
-            <div id="profile-details">
-                <!-- Detalhes do perfil injetados aqui -->
-            </div>
-            <hr style="border-color: var(--card-border); margin: 20px 0;">
-            <button class="btn btn-secondary w-full" onclick="app.logout()">
-                <span data-lucide="log-out" style="width: 16px; height: 16px;"></span>
-                Sair
-            </button>
-        </div>
+    <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
+    <div class="form-modal" id="postModal">
+        <h2 style="margin-top:0">Postar Novo Jogo</h2>
+        <input type="text" id="postTitle" placeholder="Título do Jogo">
+        <input type="text" id="postThumb" placeholder="Link da Imagem (Capa)">
+        <input type="text" id="postLink" placeholder="Link do Jogo (Embed/URL)">
+        <textarea id="postDesc" placeholder="Breve descrição..."></textarea>
+        <button class="btn-post" style="width: 100%; justify-content: center;" onclick="addNewGame()">Publicar Jogo</button>
     </div>
 
-    <!-- Modal de Gerenciamento de Comentários (Admin) -->
-    <div id="admin-comments-modal" class="modal" onclick="if(event.target.id === 'admin-comments-modal') app.closeModal('admin-comments-modal')">
-        <div class="modal-content" style="max-width: 700px;">
-            <button class="modal-close" onclick="app.closeModal('admin-comments-modal')">&times;</button>
-            <h3 id="admin-comments-title" class="mb-4">Comentários do Jogo: </h3>
-            <div id="admin-comments-list">
-                <!-- Lista de comentários injetada aqui (com botão de exclusão para admin) -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Script Principal -->
     <script>
-        const app = (() => {
-            // --- Configurações Iniciais e Variáveis Globais ---
-            const ADMIN_UID = 'YOUR_ADMIN_UID_HERE'; // *** SUBSTITUIR PELO UID DO ADMIN ***
+        // Banco de dados fake inicial
+        let games = [
+            { id: 1, title: "Super Subway", thumb: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400", url: "https://www.google.com/logos/2010/pacman10-i.html", likes: 120, views: 500, date: Date.now() },
+            { id: 2, title: "Space Combat", thumb: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400", url: "https://mario.com", likes: 85, views: 1200, date: Date.now() - 10000 }
+        ];
 
-            let firebaseApp, auth, db, storage;
-            let currentView = 'home';
-            let currentUser = null;
-            let isAdmin = false;
-            let allGames = [];
-            let allLikes = {}; // { gameId: { userId: true, count: N } }
-            
-            // Variáveis globais obrigatórias no ambiente
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-            // --- Caminhos Firestore ---
-            const firestorePaths = {
-                usersCollection: (userId) => `artifacts/${appId}/users/${userId}/profile/data`,
-                gamesCollection: `artifacts/${appId}/public/data/games`,
-                likesCollection: `artifacts/${appId}/public/data/likes`,
-                commentsCollection: (gameId) => `artifacts/${appId}/public/data/games/${gameId}/comments`,
-            };
-
-            // --- Utilidades de UI ---
-
-            /**
-             * Exibe uma mensagem de feedback (Toast)
-             * @param {string} message - Mensagem a ser exibida.
-             * @param {'success'|'error'|'info'} type - Tipo da mensagem.
-             */
-            const showToast = (message, type = 'info') => {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type}`;
-                toast.innerHTML = `
-                    <span data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-triangle' : 'info'}" 
-                          style="width: 20px; height: 20px; color: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#6d28d9'};"></span>
-                    <span>${message}</span>
-                `;
-                
-                // Renderizar ícones Lucide
-                lucide.createIcons();
-
-                container.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.classList.add('show');
-                }, 10);
-
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    toast.addEventListener('transitionend', () => toast.remove());
-                }, 4000);
-            };
-
-            /**
-             * Alterna a visibilidade das views (Home, Detalhes, Admin).
-             * @param {string} viewId - O ID da view a ser exibida ('home', 'game-detail', 'admin').
-             * @param {string} [gameId=null] - Opcional, o ID do jogo para a view de detalhes.
-             */
-            const showView = (viewId, gameId = null) => {
-                const views = ['home-view', 'game-detail-view', 'admin-view'];
-                views.forEach(id => document.getElementById(id).classList.add('hidden'));
-
-                currentView = viewId;
-                document.getElementById(viewId + '-view').classList.remove('hidden');
-                
-                // Se for a view de detalhes, renderiza o jogo específico
-                if (viewId === 'game-detail') {
-                    renderGameDetails(gameId);
-                }
-
-                // Se voltar para home, garantir que o filtro esteja limpo
-                if (viewId === 'home') {
-                    filterGames();
-                }
-                
-                // Se for a view admin, renderiza o painel
-                if (viewId === 'admin') {
-                    renderAdminPanel();
-                }
-            };
-            
-            // --- Modais ---
-
-            /**
-             * Abre um modal específico.
-             * @param {string} modalId - O ID do modal a ser aberto.
-             */
-            const openModal = (modalId) => {
-                document.getElementById(modalId).classList.add('open');
-            };
-
-            /**
-             * Fecha um modal específico.
-             * @param {string} modalId - O ID do modal a ser fechado.
-             */
-            const closeModal = (modalId) => {
-                document.getElementById(modalId).classList.remove('open');
-            };
-
-            // --- 🔐 Módulo de Autenticação ---
-
-            /**
-             * Inicializa o Firebase e a autenticação.
-             */
-            const initAuth = async () => {
-                if (!firebaseConfig) {
-                    showToast('Erro: Configuração do Firebase não encontrada.', 'error');
-                    return;
-                }
-
-                firebaseApp = firebase.initializeApp(firebaseConfig);
-                auth = firebase.auth();
-                db = firebase.firestore();
-                storage = firebase.storage();
-                
-                // Logging de debug para Firestore
-                db.settings({ experimentalForceLongPolling: true });
-                db.setLogLevel('debug');
-
-
-                // Tenta logar com o token inicial (se existir)
-                if (initialAuthToken) {
-                    try {
-                        await auth.signInWithCustomToken(initialAuthToken);
-                    } catch (error) {
-                        console.error("Erro ao fazer login com token customizado:", error);
-                        // Se falhar, tenta anonimamente para permitir acesso básico
-                        await auth.signInAnonymously();
-                    }
-                } else {
-                    // Sem token customizado, loga anonimamente
-                    await auth.signInAnonymously();
-                }
-
-
-                // Listener de estado de autenticação
-                auth.onAuthStateChanged(user => {
-                    currentUser = user;
-                    isAdmin = (user && user.uid === ADMIN_UID);
-                    updateUIAuthStatus(user);
-                    // Começa a ouvir os dados do Firestore após a autenticação
-                    if (user && !user.isAnonymous) {
-                         setupFirestoreListeners();
-                    } else if (user && user.isAnonymous) {
-                        // Usuário anônimo pode apenas ler jogos
-                        setupGamesListener(false);
-                    }
-                    if (!user) {
-                        // Usuário deslogado completamente
-                         allGames = [];
-                         allLikes = {};
-                         renderGamesGrid(document.getElementById('highlight-games'), allGames.filter(g => g.isHighlight));
-                         renderGamesGrid(document.getElementById('all-games-grid'), allGames);
-                    }
-                });
-            };
-
-            /**
-             * Atualiza a UI do cabeçalho com o status de login.
-             * @param {firebase.User} user - O objeto do usuário autenticado.
-             */
-            const updateUIAuthStatus = (user) => {
-                const loggedIn = document.getElementById('logged-in-state');
-                const loggedOut = document.getElementById('logged-out-state');
-                const adminBtn = document.getElementById('admin-button');
-                const userAvatar = document.getElementById('user-avatar');
-                const userNickname = document.getElementById('user-nickname');
-
-                if (user && !user.isAnonymous) {
-                    loggedIn.classList.remove('hidden');
-                    loggedIn.style.display = 'flex';
-                    loggedOut.classList.add('hidden');
-                    
-                    if (isAdmin) {
-                        adminBtn.classList.remove('hidden');
-                    } else {
-                        adminBtn.classList.add('hidden');
-                    }
-
-                    // Tenta obter dados do perfil
-                    fetchUserProfile(user.uid).then(profile => {
-                        userNickname.textContent = profile.nickname || 'Usuário';
-                        userAvatar.src = profile.photoURL || `https://placehold.co/40x40/${profile.uid.substring(0,6)}/ffffff?text=${(profile.nickname || 'U').charAt(0)}`;
-                        userAvatar.setAttribute('title', profile.nickname);
-                    });
-                } else {
-                    loggedIn.classList.add('hidden');
-                    loggedIn.style.display = 'none';
-                    loggedOut.classList.remove('hidden');
-                    adminBtn.classList.add('hidden');
-                }
-            };
-            
-            /**
-             * Mostra o modal de autenticação.
-             * @param {'login'|'register'} mode - O modo inicial do formulário.
-             */
-            const showAuthModal = (mode) => {
-                authMode = mode;
-                updateAuthModalUI();
-                openModal('auth-modal');
-            };
-
-            /**
-             * Alterna entre os modos Login e Cadastro no modal.
-             */
-            const toggleAuthMode = () => {
-                authMode = authMode === 'login' ? 'register' : 'login';
-                updateAuthModalUI();
-            };
-
-            /**
-             * Atualiza os textos e campos do modal de autenticação.
-             */
-            const updateAuthModalUI = () => {
-                const isLogin = authMode === 'login';
-                document.getElementById('auth-title').textContent = isLogin ? 'Fazer Login' : 'Criar Conta';
-                document.getElementById('auth-submit').textContent = isLogin ? 'Entrar' : 'Cadastrar';
-                document.getElementById('auth-nickname').classList.toggle('hidden', isLogin);
-                document.getElementById('auth-toggle-text').querySelector('a').textContent = isLogin ? 'Ainda não tem conta? Cadastre-se' : 'Já tem conta? Faça Login';
-            };
-
-            /**
-             * Submete o formulário de login/cadastro.
-             */
-            const handleAuthSubmit = (event) => {
-                event.preventDefault();
-                const email = document.getElementById('auth-email').value;
-                const password = document.getElementById('auth-password').value;
-                const nickname = document.getElementById('auth-nickname').value;
-
-                if (authMode === 'login') {
-                    loginEmailPass(email, password);
-                } else {
-                    registerEmailPass(email, password, nickname);
-                }
-            };
-            document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
-            let authMode = 'login';
-            updateAuthModalUI(); // Inicializa o modal de auth
-
-            /**
-             * Login com email e senha.
-             */
-            const loginEmailPass = async (email, password) => {
-                try {
-                    await auth.signInWithEmailAndPassword(email, password);
-                    closeModal('auth-modal');
-                    showToast('Login realizado com sucesso!', 'success');
-                } catch (error) {
-                    console.error("Erro no Login:", error);
-                    showToast('Erro no Login: ' + error.message, 'error');
-                }
-            };
-
-            /**
-             * Cadastro com email, senha e nickname.
-             */
-            const registerEmailPass = async (email, password, nickname) => {
-                if (!nickname) {
-                    showToast('Por favor, insira um Nickname.', 'error');
-                    return;
-                }
-                try {
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    const user = userCredential.user;
-                    
-                    // Cria o perfil inicial no Firestore
-                    await updateProfileInFirestore(user.uid, {
-                        uid: user.uid,
-                        nickname: nickname,
-                        email: user.email,
-                        photoURL: `https://placehold.co/40x40/${Math.floor(Math.random()*16777215).toString(16)}/ffffff?text=${nickname.charAt(0)}`,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    closeModal('auth-modal');
-                    showToast('Conta criada e login realizado com sucesso!', 'success');
-                } catch (error) {
-                    console.error("Erro no Cadastro:", error);
-                    showToast('Erro no Cadastro: ' + error.message, 'error');
-                }
-            };
-
-            /**
-             * Login com Google.
-             */
-            const loginGoogle = async () => {
-                try {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    const result = await auth.signInWithPopup(provider);
-                    const user = result.user;
-                    
-                    // Verifica se o perfil já existe e cria se não
-                    const profile = await fetchUserProfile(user.uid);
-                    if (!profile.uid) {
-                         await updateProfileInFirestore(user.uid, {
-                            uid: user.uid,
-                            nickname: user.displayName || 'GoogleUser',
-                            email: user.email,
-                            photoURL: user.photoURL,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    closeModal('auth-modal');
-                    showToast('Login com Google realizado com sucesso!', 'success');
-                } catch (error) {
-                    console.error("Erro no Login com Google:", error);
-                    showToast('Erro no Login com Google: ' + error.message, 'error');
-                }
-            };
-
-            /**
-             * Logout do usuário.
-             */
-            const logout = async () => {
-                try {
-                    await auth.signOut();
-                    closeModal('profile-modal');
-                    showToast('Desconectado com sucesso.', 'info');
-                    // Retorna para a home se estiver no admin
-                    if (currentView === 'admin') showView('home');
-                    // Redefine o estado
-                    currentUser = null;
-                    isAdmin = false;
-                } catch (error) {
-                    console.error("Erro no Logout:", error);
-                    showToast('Erro ao desconectar: ' + error.message, 'error');
-                }
-            };
-            
-            // --- 👤 Módulo de Perfil e Dados do Usuário ---
-
-            /**
-             * Salva ou atualiza os dados do perfil no Firestore.
-             * @param {string} uid - ID do usuário.
-             * @param {object} data - Dados do perfil.
-             */
-            const updateProfileInFirestore = async (uid, data) => {
-                try {
-                    const profileRef = db.doc(firestorePaths.usersCollection(uid));
-                    await profileRef.set(data, { merge: true });
-                    showToast('Perfil atualizado!', 'success');
-                } catch (error) {
-                    console.error("Erro ao salvar perfil:", error);
-                    showToast('Erro ao salvar perfil: ' + error.message, 'error');
-                }
-            };
-
-            /**
-             * Busca os dados do perfil do usuário.
-             * @param {string} uid - ID do usuário.
-             * @returns {Promise<object>} - Dados do perfil.
-             */
-            const fetchUserProfile = async (uid) => {
-                try {
-                    const profileRef = db.doc(firestorePaths.usersCollection(uid));
-                    const docSnap = await profileRef.get();
-                    if (docSnap.exists) {
-                        return docSnap.data();
-                    }
-                    return {};
-                } catch (error) {
-                    console.error("Erro ao buscar perfil:", error);
-                    return {};
-                }
-            };
-
-            /**
-             * Mostra o modal de perfil.
-             */
-            const showProfileModal = async () => {
-                if (!currentUser || currentUser.isAnonymous) {
-                    showToast('Faça login para ver seu perfil.', 'info');
-                    return;
-                }
-
-                const profileDetails = document.getElementById('profile-details');
-                profileDetails.innerHTML = `
-                    <div class="text-center p-4">
-                        <img id="modal-user-avatar" class="avatar" style="width: 80px; height: 80px; margin: 0 auto 15px;" src="" alt="Avatar">
-                        <h4 id="modal-user-nickname" class="text-xl"></h4>
-                        <p class="text-sm" style="color: #999;">UID: <span id="modal-user-uid"></span></p>
-                        <p class="text-sm" style="color: #999;">Membro desde: <span id="modal-user-created"></span></p>
-                    </div>
-                    <h5 class="mt-4 mb-2">Atividade Recente:</h5>
-                    <p style="color: #999;">Histórico de likes e comentários em desenvolvimento...</p>
-                `;
-
-                const profile = await fetchUserProfile(currentUser.uid);
-                
-                document.getElementById('modal-user-avatar').src = profile.photoURL || 'https://placehold.co/80x80/6d28d9/ffffff?text=U';
-                document.getElementById('modal-user-nickname').textContent = profile.nickname || 'Usuário Sem Nome';
-                document.getElementById('modal-user-uid').textContent = profile.uid;
-                
-                const createdDate = profile.createdAt instanceof firebase.firestore.Timestamp 
-                    ? profile.createdAt.toDate().toLocaleDateString('pt-BR') 
-                    : 'N/A';
-                document.getElementById('modal-user-created').textContent = createdDate;
-
-                openModal('profile-modal');
-            };
-
-            // --- 🔥 Listeners Firestore ---
-
-            /**
-             * Configura os listeners de real-time para Games e Likes.
-             */
-            const setupFirestoreListeners = () => {
-                setupGamesListener(true);
-                setupLikesListener();
-            };
-
-            /**
-             * Listener para a coleção de Jogos.
-             */
-            const setupGamesListener = (isAuthenticated) => {
-                const gamesRef = db.collection(firestorePaths.gamesCollection);
-                gamesRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-                    allGames = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    renderAllGames();
-                    if (isAuthenticated && isAdmin && currentView === 'admin') {
-                        renderAdminPanel();
-                    }
-                    populateCategoryFilter();
-                }, error => {
-                    console.error("Erro ao ouvir jogos:", error);
-                    showToast('Erro ao carregar lista de jogos.', 'error');
-                });
-            };
-
-            /**
-             * Listener para a coleção de Likes.
-             */
-            const setupLikesListener = () => {
-                const likesRef = db.collection(firestorePaths.likesCollection);
-                likesRef.onSnapshot(snapshot => {
-                    // Mapeia likes para um formato { gameId: { userId: true, count: N } }
-                    allLikes = {};
-                    snapshot.docs.forEach(doc => {
-                        const { gameId, userId } = doc.data();
-                        if (!allLikes[gameId]) {
-                            allLikes[gameId] = { count: 0, users: {} };
-                        }
-                        allLikes[gameId].count++;
-                        allLikes[gameId].users[userId] = true;
-                    });
-                    
-                    // Re-renderiza as grids e detalhes se estiverem abertas
-                    renderAllGames();
-                    if (currentView === 'game-detail' && currentGameId) {
-                        renderGameDetails(currentGameId);
-                    }
-                }, error => {
-                    console.error("Erro ao ouvir likes:", error);
-                    showToast('Erro ao carregar likes.', 'error');
-                });
-            };
-
-            /**
-             * Listener para a subcoleção de Comentários de um jogo específico.
-             * @param {string} gameId - ID do jogo.
-             * @param {HTMLElement} targetElement - Elemento onde os comentários serão renderizados.
-             * @returns {function} - Função para desinscrever o listener.
-             */
-            const setupCommentsListener = (gameId, targetElement) => {
-                const commentsRef = db.collection(firestorePaths.commentsCollection(gameId));
-                return commentsRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-                    renderComments(snapshot.docs, targetElement);
-                }, error => {
-                    console.error("Erro ao ouvir comentários:", error);
-                });
-            };
-
-
-            // --- 🕹️ Módulo de Jogos e Renderização ---
-
-            /**
-             * Popula o filtro de categorias com base nos jogos carregados.
-             */
-            const populateCategoryFilter = () => {
-                const select = document.getElementById('category-filter');
-                const categories = [...new Set(allGames.map(g => g.category))];
-                const selected = select.value;
-                
-                select.innerHTML = '<option value="">Todas as Categorias</option>';
-                categories.sort().forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    if (cat === selected) option.selected = true;
-                    select.appendChild(option);
-                });
-            };
-
-            /**
-             * Filtra e ordena a lista de jogos e re-renderiza as grids.
-             */
-            const filterGames = () => {
-                const search = document.getElementById('search-input').value.toLowerCase();
-                const category = document.getElementById('category-filter').value;
-                const sort = document.getElementById('sort-order').value;
-
-                let filteredGames = allGames.filter(game => {
-                    const matchesSearch = game.name.toLowerCase().includes(search);
-                    const matchesCategory = !category || game.category === category;
-                    return matchesSearch && matchesCategory;
-                });
-
-                // Ordenação
-                if (sort === 'likes') {
-                    filteredGames.sort((a, b) => {
-                        const likesA = allLikes[a.id]?.count || 0;
-                        const likesB = allLikes[b.id]?.count || 0;
-                        return likesB - likesA; // Decrescente por likes
-                    });
-                } else if (sort === 'recent') {
-                    filteredGames.sort((a, b) => {
-                        // Assume que createdAt é um Timestamp do Firebase ou tem um toDate()
-                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-                        return dateB - dateA; // Decrescente por data
-                    });
-                }
-
-                // Separa Destaques (sempre no topo, mas também no grid principal)
-                const highlightGames = filteredGames.filter(g => g.isHighlight);
-                
-                // Renderiza
-                renderGamesGrid(document.getElementById('highlight-games'), highlightGames);
-                renderGamesGrid(document.getElementById('all-games-grid'), filteredGames);
-            };
-
-            // Alias para a função principal de filtro
-            const renderAllGames = filterGames;
-            
-            /**
-             * Renderiza o grid de jogos em um elemento específico.
-             * @param {HTMLElement} targetElement - O contêiner para o grid.
-             * @param {Array<object>} games - Lista de objetos de jogos.
-             */
-            const renderGamesGrid = (targetElement, games) => {
-                targetElement.innerHTML = ''; // Limpa o conteúdo
-                if (games.length === 0) {
-                    targetElement.innerHTML = `<p class="text-center p-4">Nenhum jogo encontrado.</p>`;
-                    return;
-                }
-
-                games.forEach(game => {
-                    const likesCount = allLikes[game.id]?.count || 0;
-                    const card = document.createElement('div');
-                    card.className = 'game-card';
-                    card.setAttribute('data-id', game.id);
-                    card.onclick = () => showView('game-detail', game.id);
-                    
-                    const thumbnail = game.thumbnail || `https://placehold.co/300x180/6d28d9/ffffff?text=${game.name.substring(0, 1).toUpperCase()}`;
-
-                    card.innerHTML = `
-                        <img src="${thumbnail}" alt="Thumbnail do jogo ${game.name}" class="game-card-thumb">
-                        <div class="game-card-content">
-                            <h3>${game.name}</h3>
-                            <p class="text-xs mb-2" style="color: #999;">Categoria: ${game.category}</p>
-                            <div class="game-card-meta">
-                                <span class="game-card-likes">
-                                    <span data-lucide="heart" style="width: 16px; height: 16px; color: #ef4444;"></span>
-                                    ${likesCount}
-                                </span>
-                                <span class="game-card-views">
-                                    <span data-lucide="eye" style="width: 16px; height: 16px; color: #ccc;"></span>
-                                    ${game.views || 0}
-                                </span>
+        function renderGames(data = games) {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            data.forEach(game => {
+                grid.innerHTML += `
+                    <div class="game-card" onclick="playGame(${game.id})">
+                        <img src="${game.thumb}" class="game-thumb">
+                        <div class="game-info">
+                            <div class="game-title">${game.title}</div>
+                            <div class="game-meta">
+                                <span><i data-lucide="heart" style="width:12px"></i> ${game.likes}</span>
+                                <span><i data-lucide="eye" style="width:12px"></i> ${game.views}</span>
                             </div>
-                        </div>
-                    `;
-                    targetElement.appendChild(card);
-                });
-                lucide.createIcons(); // Renderiza ícones Lucide
-            };
-
-            let currentCommentsUnsubscribe = null;
-            let currentGameId = null;
-
-            /**
-             * Renderiza a visão de detalhes de um jogo.
-             * @param {string} gameId - ID do jogo a ser exibido.
-             */
-            const renderGameDetails = async (gameId) => {
-                currentGameId = gameId;
-                const game = allGames.find(g => g.id === gameId);
-                const detailContent = document.getElementById('game-details-content');
-                
-                if (!game) {
-                    detailContent.innerHTML = `<p class="text-center p-4">Jogo não encontrado.</p>`;
-                    return;
-                }
-                
-                // 1. Atualizar Contador de Views (Fire-and-forget)
-                updateGameViews(gameId);
-
-                // 2. Determinar estado do Like
-                const isLiked = currentUser && allLikes[gameId]?.users[currentUser.uid];
-                const likesCount = allLikes[gameId]?.count || 0;
-                const likeIcon = isLiked ? 'heart' : 'heart';
-                const likeClass = isLiked ? 'liked' : '';
-                const likeColor = isLiked ? '#ef4444' : '#ccc';
-                
-                // 3. Renderizar o HTML do Detalhe
-                detailContent.innerHTML = `
-                    <div class="game-info-actions">
-                        <h2>${game.name}</h2>
-                        <div class="flex items-center gap-4">
-                            <div class="like-button ${likeClass}" onclick="app.toggleLike('${gameId}')">
-                                <span data-lucide="${likeIcon}" style="width: 24px; height: 24px; color: ${likeColor};"></span>
-                                <span id="like-count-${gameId}">${likesCount}</span>
-                                <span class="hidden sm:inline">Curtidas</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="game-iframe-container">
-                        <iframe src="${game.url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
-                    </div>
-
-                    <p class="mb-4 text-sm" style="color: #999;">
-                        Categoria: ${game.category} | Autor: ${game.author} | Lançamento: ${game.createdAt?.toDate ? game.createdAt.toDate().toLocaleDateString('pt-BR') : 'N/A'}
-                    </p>
-                    <p class="mb-6">${game.description}</p>
-                    
-                    <div class="comment-section">
-                        <h3>💬 Comentários</h3>
-                        <div id="comment-form-container">
-                            <!-- Formulário de Comentário -->
-                            <div class="comment-form ${currentUser && !currentUser.isAnonymous ? '' : 'hidden'}">
-                                <form id="comment-form-${gameId}">
-                                    <textarea id="comment-text-${gameId}" placeholder="Escreva seu comentário..." required></textarea>
-                                    <button type="submit" class="btn">
-                                        <span data-lucide="send" style="width: 16px; height: 16px;"></span>
-                                        Comentar
-                                    </button>
-                                </form>
-                            </div>
-                            <p class="${currentUser && !currentUser.isAnonymous ? 'hidden' : ''}" style="color: #999; text-align: center; padding: 10px;">
-                                Você precisa estar logado para comentar.
-                            </p>
-                        </div>
-                        <div id="comments-list-${gameId}" class="comment-list">
-                            <!-- Skeleton Loader para Comentários -->
-                            <div class="skeleton-card p-4 mb-2"><div class="skeleton-loader skeleton-text skeleton-short mb-2"></div><div class="skeleton-loader skeleton-text skeleton-long"></div></div>
-                            <div class="skeleton-card p-4 mb-2"><div class="skeleton-loader skeleton-text skeleton-short mb-2"></div><div class="skeleton-loader skeleton-text skeleton-long"></div></div>
                         </div>
                     </div>
                 `;
-
-                lucide.createIcons();
-                
-                // 4. Configurar Listener de Comentários
-                // Desinscreve o listener anterior, se houver
-                if (currentCommentsUnsubscribe) {
-                    currentCommentsUnsubscribe();
-                }
-                const commentsListElement = document.getElementById(`comments-list-${gameId}`);
-                currentCommentsUnsubscribe = setupCommentsListener(gameId, commentsListElement);
-                
-                // 5. Adicionar Event Listener ao formulário de comentário
-                const commentForm = document.getElementById(`comment-form-${gameId}`);
-                if (commentForm) {
-                    commentForm.addEventListener('submit', (e) => handleCommentSubmit(e, gameId));
-                }
-            };
-            
-            /**
-             * Atualiza o contador de visualizações (views) de um jogo.
-             * @param {string} gameId - ID do jogo.
-             */
-            const updateGameViews = async (gameId) => {
-                const gameRef = db.collection(firestorePaths.gamesCollection).doc(gameId);
-                try {
-                    // Incrementa o contador de visualizações
-                    await gameRef.update({
-                        views: firebase.firestore.FieldValue.increment(1)
-                    });
-                } catch (error) {
-                    console.warn("Erro ao incrementar views (pode ser a primeira visualização):", error.message);
-                    // Tenta criar o campo se ele não existir
-                    await gameRef.set({ views: 1 }, { merge: true });
-                }
-            };
-
-
-            // --- ❤️ Sistema de Like ---
-
-            /**
-             * Alterna o like de um usuário em um jogo.
-             * @param {string} gameId - ID do jogo.
-             */
-            const toggleLike = async (gameId) => {
-                if (!currentUser || currentUser.isAnonymous) {
-                    showToast('Você precisa estar logado para curtir um jogo.', 'info');
-                    showAuthModal('login');
-                    return;
-                }
-
-                const userId = currentUser.uid;
-                const likesRef = db.collection(firestorePaths.likesCollection);
-                
-                // Query para encontrar o like existente
-                const likeQuery = likesRef
-                    .where('gameId', '==', gameId)
-                    .where('userId', '==', userId);
-
-                try {
-                    const snapshot = await likeQuery.get();
-                    
-                    if (snapshot.empty) {
-                        // Curtiu (Adicionar)
-                        await likesRef.add({
-                            gameId: gameId,
-                            userId: userId,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        showToast('Você curtiu o jogo!', 'success');
-                    } else {
-                        // Descurtiu (Remover)
-                        snapshot.docs.forEach(doc => {
-                            doc.ref.delete();
-                        });
-                        showToast('Você descurtiu o jogo.', 'info');
-                    }
-                    // A re-renderização será tratada pelo listener 'setupLikesListener'
-                } catch (error) {
-                    console.error("Erro ao alternar like:", error);
-                    showToast('Erro ao alternar like: ' + error.message, 'error');
-                }
-            };
-
-            // --- 💬 Sistema de Comentários ---
-
-            /**
-             * Submete um novo comentário.
-             */
-            const handleCommentSubmit = async (event, gameId) => {
-                event.preventDefault();
-                
-                if (!currentUser || currentUser.isAnonymous) {
-                    showToast('Você precisa estar logado para comentar.', 'info');
-                    return;
-                }
-
-                const commentTextarea = document.getElementById(`comment-text-${gameId}`);
-                const text = commentTextarea.value.trim();
-
-                if (text.length === 0) {
-                    showToast('O comentário não pode estar vazio.', 'error');
-                    return;
-                }
-
-                const profile = await fetchUserProfile(currentUser.uid);
-
-                try {
-                    const commentsRef = db.collection(firestorePaths.commentsCollection(gameId));
-                    await commentsRef.add({
-                        gameId: gameId,
-                        userId: currentUser.uid,
-                        nickname: profile.nickname || 'Usuário',
-                        photoURL: profile.photoURL || 'https://placehold.co/40x40/6d28d9/ffffff?text=U',
-                        text: text,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    commentTextarea.value = '';
-                    showToast('Comentário publicado!', 'success');
-                } catch (error) {
-                    console.error("Erro ao postar comentário:", error);
-                    showToast('Erro ao postar comentário: ' + error.message, 'error');
-                }
-            };
-
-            /**
-             * Renderiza a lista de comentários.
-             * @param {Array<object>} commentsDocs - Array de documentos de comentários do Firestore.
-             * @param {HTMLElement} targetElement - Elemento de destino.
-             */
-            const renderComments = (commentsDocs, targetElement) => {
-                targetElement.innerHTML = '';
-                if (commentsDocs.length === 0) {
-                    targetElement.innerHTML = `<p class="text-center p-4" style="color: #999;">Seja o primeiro a comentar!</p>`;
-                    return;
-                }
-
-                commentsDocs.forEach(doc => {
-                    const comment = doc.data();
-                    const commentId = doc.id;
-                    const isAuthor = currentUser && currentUser.uid === comment.userId;
-                    const canDelete = isAuthor || isAdmin;
-                    
-                    const item = document.createElement('div');
-                    item.className = 'comment-item';
-                    
-                    const dateString = comment.createdAt instanceof firebase.firestore.Timestamp 
-                        ? comment.createdAt.toDate().toLocaleString('pt-BR')
-                        : 'N/A';
-
-                    item.innerHTML = `
-                        <img class="comment-avatar" src="${comment.photoURL}" alt="Avatar de ${comment.nickname}">
-                        <div class="comment-body">
-                            <div class="comment-header">
-                                <span class="comment-author">${comment.nickname}</span>
-                                <span class="comment-date">${dateString}</span>
-                            </div>
-                            <p>${comment.text}</p>
-                            ${canDelete ? `<div class="comment-actions mt-2"><button onclick="app.deleteComment('${currentGameId}', '${commentId}', ${isAuthor})">
-                                <span data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 5px;"></span>Excluir
-                            </button></div>` : ''}
-                        </div>
-                    `;
-                    targetElement.appendChild(item);
-                });
-                lucide.createIcons();
-            };
-
-            /**
-             * Deleta um comentário.
-             * @param {string} gameId - ID do jogo.
-             * @param {string} commentId - ID do comentário.
-             * @param {boolean} isAuthor - Se o usuário é o autor do comentário.
-             */
-            const deleteComment = async (gameId, commentId, isAuthor) => {
-                if (!currentUser || currentUser.isAnonymous) return;
-
-                if (!isAuthor && !isAdmin) {
-                    showToast('Você só pode excluir seus próprios comentários.', 'error');
-                    return;
-                }
-                
-                // Confirmação personalizada (simples)
-                if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
-
-                try {
-                    const commentRef = db.collection(firestorePaths.commentsCollection(gameId)).doc(commentId);
-                    await commentRef.delete();
-                    showToast('Comentário excluído!', 'success');
-                } catch (error) {
-                    console.error("Erro ao deletar comentário:", error);
-                    showToast('Erro ao deletar comentário: ' + error.message, 'error');
-                }
-            };
-            
-            // --- 🧑‍💼 Módulo Admin ---
-
-            /**
-             * Renderiza o painel de administração (apenas para admins logados).
-             */
-            const renderAdminPanel = () => {
-                if (!isAdmin) {
-                    showToast('Acesso negado. Apenas administradores.', 'error');
-                    showView('home');
-                    return;
-                }
-
-                const adminGameList = document.getElementById('admin-game-list');
-                adminGameList.innerHTML = '';
-                
-                if (allGames.length === 0) {
-                    adminGameList.innerHTML = `<p class="text-center p-4">Nenhum jogo cadastrado.</p>`;
-                    return;
-                }
-
-                allGames.forEach(game => {
-                    const item = document.createElement('div');
-                    item.className = 'admin-game-item';
-                    item.innerHTML = `
-                        <span style="font-weight: 600; flex: 1;">${game.name}</span>
-                        <span style="color: #999; margin-right: 15px;">(${game.category})</span>
-                        
-                        <button class="btn btn-secondary btn-small" onclick="app.toggleHighlight('${game.id}', ${game.isHighlight || false})">
-                            <span data-lucide="${game.isHighlight ? 'star-off' : 'star'}" style="width: 16px; height: 16px; margin-right: 5px;"></span>
-                            ${game.isHighlight ? 'Remover Destaque' : 'Marcar Destaque'}
-                        </button>
-                        
-                        <button class="btn btn-secondary btn-small" onclick="app.showAdminCommentsModal('${game.id}', '${game.name}')">
-                            <span data-lucide="message-square" style="width: 16px; height: 16px; margin-right: 5px;"></span>
-                            Comentários
-                        </button>
-
-                        <button class="btn btn-secondary btn-small" onclick="app.editGame('${game.id}')">
-                            <span data-lucide="edit-3" style="width: 16px; height: 16px; margin-right: 5px;"></span>
-                            Editar
-                        </button>
-                        
-                        <button class="btn btn-danger btn-small" onclick="app.deleteGame('${game.id}', '${game.name}')">
-                            <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 5px;"></span>
-                            Deletar
-                        </button>
-                    `;
-                    adminGameList.appendChild(item);
-                });
-                lucide.createIcons();
-            };
-
-            /**
-             * Manipula o envio do formulário (Adicionar/Editar Jogo).
-             */
-            const handleGameFormSubmit = async (event) => {
-                event.preventDefault();
-                if (!isAdmin) return;
-
-                const id = document.getElementById('game-id').value;
-                const name = document.getElementById('game-name').value;
-                const description = document.getElementById('game-description').value;
-                const category = document.getElementById('game-category').value;
-                const url = document.getElementById('game-url').value;
-                const thumbnail = document.getElementById('game-thumbnail').value;
-
-                const gameData = {
-                    name,
-                    description,
-                    category,
-                    url,
-                    thumbnail,
-                    author: currentUser.uid, // O admin é o autor
-                };
-                
-                try {
-                    const gamesRef = db.collection(firestorePaths.gamesCollection);
-                    
-                    if (id) {
-                        // Editar Jogo
-                        await gamesRef.doc(id).update(gameData);
-                        showToast('Jogo atualizado com sucesso!', 'success');
-                    } else {
-                        // Adicionar Novo Jogo
-                        gameData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                        gameData.isHighlight = false; // Novo jogo não é destaque por padrão
-                        gameData.views = 0;
-                        await gamesRef.add(gameData);
-                        showToast('Novo jogo adicionado com sucesso!', 'success');
-                    }
-                    resetGameForm();
-                } catch (error) {
-                    console.error("Erro ao salvar jogo:", error);
-                    showToast('Erro ao salvar jogo: ' + error.message, 'error');
-                }
-            };
-            document.getElementById('game-form').addEventListener('submit', handleGameFormSubmit);
-
-            /**
-             * Preenche o formulário para edição de um jogo.
-             * @param {string} gameId - ID do jogo a ser editado.
-             */
-            const editGame = (gameId) => {
-                const game = allGames.find(g => g.id === gameId);
-                if (!game) return;
-
-                document.getElementById('game-id').value = game.id;
-                document.getElementById('game-name').value = game.name;
-                document.getElementById('game-description').value = game.description;
-                document.getElementById('game-category').value = game.category;
-                document.getElementById('game-url').value = game.url;
-                document.getElementById('game-thumbnail').value = game.thumbnail;
-                
-                document.getElementById('game-form-submit').textContent = 'Salvar Edição';
-                document.getElementById('game-form-cancel').classList.remove('hidden');
-                showToast(`Editando: ${game.name}`, 'info');
-            };
-
-            /**
-             * Reseta o formulário de jogo.
-             */
-            const resetGameForm = () => {
-                document.getElementById('game-form').reset();
-                document.getElementById('game-id').value = '';
-                document.getElementById('game-form-submit').textContent = 'Adicionar Jogo';
-                document.getElementById('game-form-cancel').classList.add('hidden');
-            };
-
-            /**
-             * Deleta um jogo.
-             * @param {string} gameId - ID do jogo.
-             * @param {string} gameName - Nome do jogo.
-             */
-            const deleteGame = async (gameId, gameName) => {
-                if (!isAdmin) return;
-
-                if (!confirm(`Tem certeza que deseja deletar o jogo "${gameName}" e todos os seus dados (likes/comentários)?`)) return;
-
-                try {
-                    const gamesRef = db.collection(firestorePaths.gamesCollection);
-                    await gamesRef.doc(gameId).delete();
-                    showToast(`Jogo "${gameName}" deletado com sucesso!`, 'success');
-                } catch (error) {
-                    console.error("Erro ao deletar jogo:", error);
-                    showToast('Erro ao deletar jogo: ' + error.message, 'error');
-                }
-                // Nota: As subcoleções (comments) e a coleção (likes) precisarão ser limpas manualmente ou por um Cloud Function,
-                // o que está fora do escopo do single-file HTML/JS. No entanto, o listener remove o jogo da lista.
-            };
-
-            /**
-             * Marca/Desmarca um jogo como destaque.
-             * @param {string} gameId - ID do jogo.
-             * @param {boolean} isCurrentlyHighlight - Estado atual.
-             */
-            const toggleHighlight = async (gameId, isCurrentlyHighlight) => {
-                if (!isAdmin) return;
-
-                try {
-                    const gamesRef = db.collection(firestorePaths.gamesCollection);
-                    await gamesRef.doc(gameId).update({
-                        isHighlight: !isCurrentlyHighlight
-                    });
-                    showToast(`Jogo ${!isCurrentlyHighlight ? 'marcado' : 'removido'} dos destaques.`, 'success');
-                } catch (error) {
-                    console.error("Erro ao alternar destaque:", error);
-                    showToast('Erro ao alternar destaque: ' + error.message, 'error');
-                }
-            };
-
-            /**
-             * Mostra o modal de gerenciamento de comentários para o admin.
-             * @param {string} gameId - ID do jogo.
-             * @param {string} gameName - Nome do jogo.
-             */
-            const showAdminCommentsModal = (gameId, gameName) => {
-                if (!isAdmin) return;
-
-                document.getElementById('admin-comments-title').textContent = `Comentários do Jogo: ${gameName}`;
-                const adminCommentsList = document.getElementById('admin-comments-list');
-                adminCommentsList.innerHTML = '<p class="text-center p-4">Carregando comentários...</p>';
-
-                // Usa um listener temporário para popular o modal
-                const tempUnsubscribe = db.collection(firestorePaths.commentsCollection(gameId))
-                    .orderBy('createdAt', 'desc')
-                    .onSnapshot(snapshot => {
-                        // Renderiza os comentários com a permissão de exclusão do admin
-                        renderComments(snapshot.docs, adminCommentsList);
-                    }, error => {
-                        console.error("Erro ao carregar comentários admin:", error);
-                        adminCommentsList.innerHTML = `<p class="text-center p-4 text-red-400">Erro ao carregar comentários.</p>`;
-                    });
-
-                openModal('admin-comments-modal');
-                
-                // Limpa o listener ao fechar o modal
-                document.getElementById('admin-comments-modal').onclick = (event) => {
-                    if (event.target.id === 'admin-comments-modal' || event.target.closest('.modal-close')) {
-                        closeModal('admin-comments-modal');
-                        tempUnsubscribe();
-                    }
-                };
-            };
-
-            // --- Inicialização ---
-
-            document.addEventListener('DOMContentLoaded', () => {
-                // Renderiza ícones iniciais
-                lucide.createIcons();
-                // Inicializa Firebase
-                initAuth();
-                // Tenta carregar a home (será atualizada pelo listener)
-                showView('home');
             });
+            lucide.createIcons();
+        }
 
-            // Retorna as funções públicas
-            return {
-                showView,
-                showAuthModal,
-                toggleAuthMode,
-                loginGoogle,
-                logout,
-                showProfileModal,
-                filterGames,
-                toggleLike,
-                deleteComment,
-                
-                // Funções Admin
-                renderAdminPanel, // Exposta para navegação
-                editGame,
-                deleteGame,
-                toggleHighlight,
-                resetGameForm,
-                showAdminCommentsModal,
-                closeModal
+        function toggleModal(id) {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function closeAllModals() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('postModal').style.display = 'none';
+        }
+
+        function addNewGame() {
+            const title = document.getElementById('postTitle').value;
+            const thumb = document.getElementById('postThumb').value;
+            const url = document.getElementById('postLink').value;
+
+            if(!title || !url) return alert("Preencha o título e o link!");
+
+            const newGame = {
+                id: Date.now(),
+                title: title,
+                thumb: thumb || 'https://placehold.co/400x200/2e1065/white?text=Game',
+                url: url,
+                likes: 0,
+                views: 0,
+                date: Date.now()
             };
-        })();
+
+            games.unshift(newGame);
+            renderGames();
+            closeAllModals();
+            alert("Jogo postado com sucesso!");
+        }
+
+        function playGame(id) {
+            const game = games.find(g => g.id === id);
+            game.views++;
+            document.getElementById('modalTitle').innerText = game.title;
+            document.getElementById('gameIframe').src = game.url;
+            document.getElementById('likeCount').innerText = game.likes;
+            document.getElementById('gamePlayer').style.display = 'flex';
+            
+            document.getElementById('modalLikeBtn').onclick = function() {
+                this.classList.toggle('liked');
+                if(this.classList.contains('liked')) {
+                    game.likes++;
+                } else {
+                    game.likes--;
+                }
+                document.getElementById('likeCount').innerText = game.likes;
+                renderGames();
+            };
+        }
+
+        function closeGame() {
+            document.getElementById('gamePlayer').style.display = 'none';
+            document.getElementById('gameIframe').src = '';
+        }
+
+        function sortGames(type) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            let sorted = [...games];
+            if(type === 'recent') sorted.sort((a,b) => b.date - a.date);
+            if(type === 'played') sorted.sort((a,b) => b.views - a.views);
+            if(type === 'liked') sorted.sort((a,b) => b.likes - a.likes);
+            
+            renderGames(sorted);
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderGames();
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>
