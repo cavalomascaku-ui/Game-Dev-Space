@@ -5,176 +5,234 @@
 <title>Game Dev Space V2.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Firebase v8 -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-*{box-sizing:border-box;font-family:Inter,Arial,sans-serif}
-body{margin:0;color:#fff;background:radial-gradient(circle at top,#1b1f3b,#050510 70%)}
-header{padding:20px;position:sticky;top:0;background:rgba(10,10,25,.85);backdrop-filter:blur(12px);z-index:5}
-header h1{margin:0;font-size:30px;font-weight:800;color:#22c55e}
-.actions{position:absolute;right:20px;top:20px;display:flex;gap:10px;align-items:center}
-button{background:#4f46e5;color:#fff;border:none;padding:10px 18px;border-radius:14px;font-weight:bold;cursor:pointer}
-button.danger{background:#ef4444}
-main{max-width:1200px;margin:auto;padding:30px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
-.card{background:#0f1025;border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.4);position:relative;transition:.2s}
-.card:hover{transform:translateY(-6px)}
-.card img{width:100%;height:140px;object-fit:cover}
-.info{padding:14px}
-.like-count{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.6);padding:6px 12px;border-radius:999px}
-#adminPanel{background:#0f1025;padding:20px;border-radius:18px;margin-bottom:30px;display:none}
-#gameView{display:none;max-width:900px;margin:auto;padding:30px}
-#loginModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:20;align-items:center;justify-content:center}
-#loginBox{background:#0f1025;padding:30px;border-radius:18px;max-width:360px;width:90%;text-align:center}
-footer{text-align:center;padding:30px;opacity:.4}
+:root { --neon: #22c55e; --glow: rgba(34, 197, 94, 0.4); }
+*{box-sizing:border-box; font-family: 'Inter', sans-serif;}
+
+body { margin:0; color:#fff; background:#050510; overflow-x: hidden; }
+
+/* Fundo Animado Tech */
+.bg-tech {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, #1b1f3b 0%, #050510 100%);
+    z-index: -1;
+}
+.bg-tech::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px), 
+                      linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: move-bg 20s linear infinite;
+}
+@keyframes move-bg { from { transform: translateY(0); } to { transform: translateY(50px); } }
+
+header {
+    padding: 60px 20px 40px; text-align: center;
+    background: linear-gradient(to bottom, rgba(10,10,25,0.9), transparent);
+}
+
+header h1 {
+    font-family: 'Orbitron', sans-serif; font-size: clamp(32px, 8vw, 50px); margin: 0;
+    color: var(--neon); text-shadow: 0 0 20px var(--glow); letter-spacing: 4px;
+}
+
+.search-bar {
+    margin: 30px auto 0; width: 100%; max-width: 600px; position: relative;
+}
+.search-bar input {
+    width: 100%; padding: 15px 25px; border-radius: 30px; border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(0,0,0,0.4); color: #fff; font-size: 16px; outline: none;
+    backdrop-filter: blur(5px); transition: 0.3s;
+}
+.search-bar input:focus { border-color: var(--neon); box-shadow: 0 0 15px var(--glow); }
+
+.top-nav { position: absolute; right: 20px; top: 20px; display: flex; gap: 15px; }
+
+button { background: #4f46e5; color: #fff; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+button:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+/* Grid e Efeito Glow nos Jogos */
+main { max-width: 1300px; margin: auto; padding: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
+
+.card {
+    background: #0f1025; border-radius: 20px; overflow: hidden; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.05); position: relative;
+    transition: 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+}
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px var(--glow);
+    border-color: var(--neon);
+}
+.card img { width: 100%; height: 160px; object-fit: cover; transition: 0.5s; }
+.card:hover img { filter: contrast(1.1); }
+
+.card-info { padding: 15px; }
+.card-info h3 { margin: 0; font-size: 18px; color: #eee; }
+.like-tag { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.75); padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid rgba(255,255,255,0.1); }
+
+#gameView { display: none; padding: 40px 20px; max-width: 1000px; margin: auto; }
+.iframe-container { width: 100%; height: 600px; background: #000; border-radius: 20px; border: 2px solid var(--neon); overflow: hidden; margin-top: 20px; }
+iframe { width: 100%; height: 100%; border: none; }
+
+#loginModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; }
+.modal-box { background: #0f1025; padding: 40px; border-radius: 25px; border: 1px solid var(--neon); text-align: center; width: 90%; max-width: 400px; }
+
+footer { text-align: center; padding: 60px; opacity: 0.4; font-size: 14px; letter-spacing: 1px; }
 </style>
 </head>
 <body>
 
+<div class="bg-tech"></div>
+
 <header>
-  <h1>Game Dev Space</h1>
-  <div class="actions">
-    <div id="userBadge" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,.08);padding:6px 12px;border-radius:999px">
-      <img id="userPhoto" style="width:28px;height:28px;border-radius:50%">
-      <small id="userName"></small>
+    <div class="top-nav">
+        <button id="adminLoginBtn" style="background:#22c55e">Admin</button>
+        <button id="loginBtn">Login</button>
+        <button id="logoutBtn" style="display:none">Sair</button>
     </div>
-    <button id="loginBtn">Login</button>
-    <button id="postBtn" style="display:none">Novo Jogo</button>
-    <button id="logoutBtn" style="display:none">Sair</button>
-  </div>
+    <h1>GAME DEV SPACE</h1>
+    <div class="search-bar">
+        <input type="text" id="searchInp" placeholder="Pesquisar jogo na biblioteca...">
+    </div>
 </header>
 
 <div id="loginModal">
-  <div id="loginBox">
-    <h2>Entrar</h2>
-    <p style="opacity:.7">Faça login para curtir e publicar jogos</p>
-    <button id="googleLogin" style="width:100%">Entrar com Google</button>
-    <br><br>
-    <button onclick="closeLogin()" style="background:transparent">Cancelar</button>
-  </div>
+    <div class="modal-box">
+        <h2 style="font-family:Orbitron">ENTRAR</h2>
+        <button onclick="googleAuth()" style="width:100%; padding:15px; margin-bottom:10px">Google Login</button>
+        <button onclick="closeModals()" style="background:transparent; color:#888">Cancelar</button>
+    </div>
 </div>
 
 <main id="home">
-  <section id="adminPanel">
-    <h2>👑 Painel Admin</h2>
-    <button id="toggleAdminDelete" class="danger">❌ MODO DELETAR: OFF</button><br><br>
-    <button id="wipeGames" class="danger">🧨 Apagar TODOS</button>
-  </section>
-
-  <h2>🔥 Em alta da semana</h2>
-  <div class="grid" id="weekly"></div>
-
-  <h2 style="margin-top:40px">🎮 Todos os jogos</h2>
-  <div class="grid" id="games"></div>
+    <h2 id="listTitle" style="margin-bottom:25px; font-weight: 300; color: #888;">EXPLORAR JOGOS</h2>
+    <div class="grid" id="mainGrid"></div>
 </main>
 
 <main id="gameView"></main>
 
-<footer>Game Dev Space • plataforma indie</footer>
+<footer>GAME DEV SPACE • TECH V2</footer>
 
 <script>
-const OWNER_UID = "EvTgWu6fFFeWJrFdckMNVa1E20J3";
+// Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
-  authDomain: "game-dev-space.firebaseapp.com",
-  databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
-  projectId: "game-dev-space",
+    apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
+    authDomain: "game-dev-space.firebaseapp.com",
+    databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
+    projectId: "game-dev-space",
 };
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
 const db = firebase.database();
-const gamesRef = db.ref("games");
 
-let currentUser=null;
-let ADMIN_DELETE_MODE=false;
+let currentUser = null;
+let isAdmin = false;
+let allGames = [];
 
-loginBtn.onclick=()=>loginModal.style.display="flex";
-function closeLogin(){loginModal.style.display="none"}
-
-googleLogin.onclick=()=>{
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(closeLogin);
-};
-logoutBtn.onclick=()=>auth.signOut();
-
-auth.onAuthStateChanged(user=>{
-  currentUser=user;
-  const isAdmin=user&&user.uid===OWNER_UID;
-  loginBtn.style.display=user?"none":"inline-block";
-  logoutBtn.style.display=user?"inline-block":"none";
-  postBtn.style.display=isAdmin?"inline-block":"none";
-  adminPanel.style.display=isAdmin?"block":"none";
-
-  if(user){
-    userBadge.style.display="flex";
-    userPhoto.src=user.photoURL;
-    userName.textContent=user.displayName;
-  }else userBadge.style.display="none";
-});
-
-postBtn.onclick=()=>{
-  const name=prompt("Nome do jogo");
-  const img=prompt("Imagem URL");
-  const url=prompt("Link do jogo");
-  if(!name||!url) return;
-  gamesRef.push({name,img:img||"",url,likes:0,likedBy:{},owner:currentUser.uid,created:Date.now()});
+// Gerenciamento de Admin
+adminLoginBtn.onclick = () => {
+    const pass = prompt("Senha de Acesso:");
+    if(pass === "15423993945") {
+        isAdmin = true;
+        alert("Modo Administrador Ativado!");
+        const action = confirm("Deseja postar um novo jogo?");
+        if(action) postGame();
+    } else {
+        alert("Senha incorreta.");
+    }
 };
 
-wipeGames.onclick=()=>confirm("APAGAR TUDO?")&&gamesRef.remove();
-
-toggleAdminDelete.onclick=()=>{
-  ADMIN_DELETE_MODE=!ADMIN_DELETE_MODE;
-  toggleAdminDelete.textContent=ADMIN_DELETE_MODE?"❌ MODO DELETAR: ON":"❌ MODO DELETAR: OFF";
-};
-
-const gamesEl=document.getElementById("games");
-const weeklyEl=document.getElementById("weekly");
-
-gamesRef.on("value",snap=>{
-  gamesEl.innerHTML="";
-  weeklyEl.innerHTML="";
-  const data=snap.val()||{};
-  const list=Object.entries(data).map(([id,g])=>({id,...g}));
-
-  list.slice().sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,4)
-    .forEach(g=>weeklyEl.appendChild(card(g.id,g)));
-
-  list.sort((a,b)=>b.created-a.created)
-    .forEach(g=>gamesEl.appendChild(card(g.id,g)));
-});
-
-function card(id,g){
-  const d=document.createElement("div");
-  d.className="card";
-  d.innerHTML=`<div class='like-count'>❤ ${g.likes||0}</div><img src='${g.img}'><div class='info'><h3>${g.name}</h3></div>`;
-  d.onclick=()=>{
-    if(currentUser&&currentUser.uid===OWNER_UID&&ADMIN_DELETE_MODE){
-      confirm(`DELETAR ${g.name}?`)&&gamesRef.child(id).remove();
-    }else openGame(id,g);
-  };
-  return d;
+function postGame() {
+    const name = prompt("Nome do Jogo:");
+    const img = prompt("URL da Capa:");
+    const url = prompt("Link do Jogo (URL):");
+    if(name && url) {
+        db.ref("games").push({ name, img, url, likes: 0, date: Date.now() });
+    }
 }
 
-function openGame(id,g){
-  home.style.display="none";
-  gameView.style.display="block";
-  gameView.innerHTML=`<button onclick='back()'>← Voltar</button><h2>${g.name}</h2><button onclick="like('${id}')">❤ Curtir</button><button onclick="window.open('${g.url}')">Jogar</button>`;
+// Auth
+loginBtn.onclick = () => loginModal.style.display = "flex";
+function closeModals() { loginModal.style.display = "none"; }
+function googleAuth() {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(closeModals);
 }
-function back(){gameView.style.display="none";home.style.display="block"}
+logoutBtn.onclick = () => { auth.signOut(); isAdmin = false; };
 
-function like(id){
-  if(!currentUser) return alert("Faça login");
-  gamesRef.child(id).transaction(g=>{
-    if(!g) return g;
-    g.likedBy=g.likedBy||{};
-    if(g.likedBy[currentUser.uid]) return g;
-    g.likedBy[currentUser.uid]=true;
-    g.likes=(g.likes||0)+1;
-    return g;
-  });
+auth.onAuthStateChanged(user => {
+    currentUser = user;
+    loginBtn.style.display = user ? "none" : "block";
+    logoutBtn.style.display = user ? "block" : "none";
+});
+
+// Busca e Renderização
+db.ref("games").on("value", snap => {
+    const data = snap.val() || {};
+    allGames = Object.entries(data).map(([id, g]) => ({ id, ...g }));
+    render(allGames);
+});
+
+function render(list) {
+    mainGrid.innerHTML = "";
+    list.sort((a,b) => b.date - a.date).forEach(g => {
+        const item = document.createElement("div");
+        item.className = "card";
+        item.innerHTML = `
+            <div class="like-tag">❤ ${g.likes || 0}</div>
+            <img src="${g.img || 'https://via.placeholder.com/400x200/0f1025/ffffff?text=Game+Image'}">
+            <div class="card-info"><h3>${g.name}</h3></div>
+        `;
+        item.onclick = () => openGame(g);
+        mainGrid.appendChild(item);
+    });
+}
+
+searchInp.oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = allGames.filter(g => g.name.toLowerCase().includes(term));
+    render(filtered);
+    document.getElementById("listTitle").innerText = term ? `RESULTADOS PARA: ${term.toUpperCase()}` : "EXPLORAR JOGOS";
+};
+
+function openGame(g) {
+    home.style.display = "none";
+    gameView.style.display = "block";
+    gameView.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button onclick="backHome()">← VOLTAR</button>
+            <h2 style="font-family:Orbitron; color:var(--neon)">${g.name.toUpperCase()}</h2>
+            ${isAdmin ? `<button onclick="delGame('${g.id}')" style="background:#ef4444">DELETAR POST</button>` : `<div></div>`}
+        </div>
+        <div class="iframe-container">
+            <iframe src="${g.url}"></iframe>
+        </div>
+        <div style="text-align:center; padding:20px;">
+            <button onclick="like('${g.id}')" style="font-size:18px; padding:15px 40px; background:var(--neon)">CURTIR JOGO</button>
+        </div>
+    `;
+    window.scrollTo(0,0);
+}
+
+function delGame(id) {
+    if(confirm("Deseja realmente apagar este jogo da biblioteca?")) {
+        db.ref("games").child(id).remove();
+        backHome();
+    }
+}
+
+function backHome() { gameView.style.display = "none"; home.style.display = "block"; }
+
+function like(id) {
+    if(!currentUser) return alert("Faça login para curtir!");
+    db.ref("games").child(id).child("likes").transaction(l => (l || 0) + 1);
 }
 </script>
 </body>
