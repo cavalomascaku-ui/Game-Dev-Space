@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameHUB | Portal de Jogos</title>
+    <title>GameHUB | My Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -11,12 +11,10 @@
         :root {
             --bg-dark: #0f172a;
             --accent: #8b5cf6;
-            --accent-hover: #7c3aed;
             --card-bg: rgba(30, 41, 59, 0.7);
             --text: #f8fafc;
         }
 
-        /* Fundo Animado */
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
@@ -25,7 +23,6 @@
             animation: gradientBG 15s ease infinite;
             color: var(--text);
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
         @keyframes gradientBG {
@@ -36,13 +33,13 @@
 
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
-        /* Header */
+        /* Header e Busca */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.8);
+            padding: 15px 30px;
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
@@ -50,162 +47,234 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+        .search-container {
+            flex-grow: 1;
+            max-width: 500px;
+            margin: 0 20px;
+            position: relative;
+        }
 
-        /* Sistema de Perfil */
-        .profile-area { display: flex; align-items: center; gap: 15px; }
-        .user-badge { display: flex; align-items: center; gap: 10px; background: var(--card-bg); padding: 5px 15px; border-radius: 50px; border: 1px solid var(--accent); }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-
-        /* Botão Postar */
-        .btn-post {
-            background: var(--accent);
+        .search-container input {
+            width: 100%;
+            padding: 10px 40px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            outline: none;
+        }
+
+        .search-icon { position: absolute; left: 15px; top: 10px; color: #64748b; }
+
+        /* Perfil e Botão Postar */
+        .nav-actions { display: flex; align-items: center; gap: 15px; }
+        
+        .user-profile {
             cursor: pointer;
-            font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: 0.3s;
-        }
-        .btn-post:hover { transform: scale(1.05); background: var(--accent-hover); }
-
-        /* Filtros */
-        .filters { display: flex; gap: 15px; margin: 30px 0; }
-        .filter-btn {
+            gap: 10px;
+            padding: 5px 12px;
+            border-radius: 50px;
             background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 20px;
-            cursor: pointer;
+            border: 1px solid var(--accent);
             transition: 0.3s;
         }
-        .filter-btn.active { background: var(--accent); border-color: var(--accent); }
 
-        /* Grid de Jogos */
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #334155; }
+
+        /* Grid */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
         }
 
         .game-card {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 15px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.4s;
             cursor: pointer;
-            position: relative;
         }
-        .game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .game-thumb { width: 100%; height: 140px; object-fit: cover; }
-        .game-info { padding: 12px; }
-        .game-title { font-weight: bold; font-size: 1rem; margin-bottom: 5px; }
-        .game-meta { font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; }
 
-        /* Modal Estilo Poki */
-        .game-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
+        .game-card:hover { transform: scale(1.03); border-color: var(--accent); }
+        .game-thumb { width: 100%; height: 150px; object-fit: cover; }
+        .game-info { padding: 15px; }
+        .game-title { font-weight: bold; font-size: 1.1rem; }
+        .like-badge { display: flex; align-items: center; gap: 5px; color: #ef4444; margin-top: 8px; font-size: 0.9rem; }
+
+        /* Modal Jogo (Estilo Poki) */
+        .poki-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 2000; display: none; flex-direction: column;
         }
-        .modal-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; }
-        .iframe-container { flex-grow: 1; background: #000; display: flex; justify-content: center; align-items: center; }
-        iframe { width: 100%; height: 100%; border: none; }
-        
-        .like-btn { background: none; border: 1px solid #ef4444; color: #ef4444; padding: 5px 15px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .like-btn.liked { background: #ef4444; color: white; }
 
-        /* Modal de Postagem */
-        .form-modal {
+        .poki-toolbar { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; }
+        .poki-frame { flex-grow: 1; border: none; width: 100%; height: 100%; background: #000; }
+
+        /* Modais de Form */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 1000; display: none; 
+            backdrop-filter: blur(5px);
+        }
+        .modal-box {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #1e293b; padding: 30px; border-radius: 15px; z-index: 1100;
-            width: 90%; max-width: 400px; display: none;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background: #1e293b; padding: 30px; border-radius: 20px; z-index: 1001;
+            width: 90%; max-width: 400px; display: none; border: 1px solid var(--accent);
         }
-        .form-modal input, .form-modal textarea {
-            width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white;
-        }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1050; display: none; }
 
-        .hidden { display: none; }
+        input, textarea {
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px;
+            border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box;
+        }
+
+        .btn-main {
+            background: var(--accent); color: white; border: none; padding: 12px 20px;
+            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo"><i data-lucide="gamepad-2"></i> GAMEHUB</div>
-        <div class="profile-area">
-            <button class="btn-post" onclick="toggleModal('postModal')"><i data-lucide="plus-circle"></i> Postar Jogo</button>
-            <div class="user-badge">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="user-avatar" id="navAvatar">
-                <span id="navNickname">Player1</span>
+        <div style="font-weight: 900; color: var(--accent); font-size: 1.4rem;">GAMEHUB</div>
+        
+        <div class="search-container">
+            <i data-lucide="search" class="search-icon" style="width:18px"></i>
+            <input type="text" id="searchInput" placeholder="Pesquisar jogo..." oninput="searchGames()">
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn-main" onclick="openPostModal()" style="width: auto;">
+                <i data-lucide="plus"></i> Postar
+            </button>
+            <div class="user-profile" onclick="openProfileModal()">
+                <img src="" id="userImg" class="user-avatar">
+                <span id="userName">Entrar</span>
             </div>
         </div>
     </header>
 
     <div class="container">
-        <div class="filters">
-            <button class="filter-btn active" onclick="sortGames('recent')">Mais Recentes</button>
-            <button class="filter-btn" onclick="sortGames('played')">Mais Jogados</button>
-            <button class="filter-btn" onclick="sortGames('liked')">Mais Curtidos</button>
-        </div>
-
-        <div class="game-grid" id="gameGrid">
+        <h2 id="sectionTitle">Mais Recentes</h2>
+        <div class="game-grid" id="mainGrid">
             </div>
     </div>
 
-    <div class="game-modal" id="gamePlayer">
-        <div class="modal-header">
-            <div id="modalTitle" style="font-weight: bold; font-size: 1.2rem;">Nome do Jogo</div>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <button class="like-btn" id="modalLikeBtn"><i data-lucide="heart"></i> <span id="likeCount">0</span></button>
-                <button onclick="closeGame()" style="background: none; border: none; color: white; cursor: pointer;"><i data-lucide="x"></i></button>
-            </div>
-        </div>
-        <div class="iframe-container">
-            <iframe id="gameIframe" src=""></iframe>
-        </div>
+    <div class="modal-overlay" id="overlay" onclick="closeModals()"></div>
+    <div class="modal-box" id="profileModal">
+        <h3>Meu Perfil</h3>
+        <input type="text" id="regName" placeholder="Seu Nickname">
+        <input type="text" id="regPic" placeholder="URL da foto de perfil">
+        <button class="btn-main" onclick="saveProfile()">Salvar Dados</button>
     </div>
 
-    <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
-    <div class="form-modal" id="postModal">
-        <h2 style="margin-top:0">Postar Novo Jogo</h2>
-        <input type="text" id="postTitle" placeholder="Título do Jogo">
-        <input type="text" id="postThumb" placeholder="Link da Imagem (Capa)">
-        <input type="text" id="postLink" placeholder="Link do Jogo (Embed/URL)">
-        <textarea id="postDesc" placeholder="Breve descrição..."></textarea>
-        <button class="btn-post" style="width: 100%; justify-content: center;" onclick="addNewGame()">Publicar Jogo</button>
+    <div class="modal-box" id="postModal">
+        <h3>Postar Novo Jogo</h3>
+        <input type="text" id="gameTitle" placeholder="Título">
+        <input type="text" id="gamePic" placeholder="URL da Capa">
+        <input type="text" id="gameUrl" placeholder="Link do Jogo (URL)">
+        <textarea id="gameDesc" placeholder="Descrição curta"></textarea>
+        <button class="btn-main" onclick="saveGame()">Publicar</button>
+    </div>
+
+    <div class="poki-view" id="pokiPlayer">
+        <div class="poki-toolbar">
+            <div id="pokiTitle" style="font-weight: bold;">Nome do Jogo</div>
+            <div style="display: flex; gap: 20px;">
+                <button id="pokiLikeBtn" style="background:none; border:none; color:#ef4444; cursor:pointer; display:flex; align-items:center; gap:5px">
+                    <i data-lucide="heart"></i> <span id="pokiLikeCount">0</span>
+                </button>
+                <button onclick="closePoki()" style="background:none; border:none; color:white; cursor:pointer;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+        <iframe src="" id="pokiIframe" class="poki-frame"></iframe>
     </div>
 
     <script>
-        // Banco de dados fake inicial
-        let games = [
-            { id: 1, title: "Super Subway", thumb: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400", url: "https://www.google.com/logos/2010/pacman10-i.html", likes: 120, views: 500, date: Date.now() },
-            { id: 2, title: "Space Combat", thumb: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400", url: "https://mario.com", likes: 85, views: 1200, date: Date.now() - 10000 }
-        ];
+        let currentUser = JSON.parse(localStorage.getItem('gh_user')) || null;
+        let games = JSON.parse(localStorage.getItem('gh_games')) || [];
 
-        function renderGames(data = games) {
-            const grid = document.getElementById('gameGrid');
+        // Inicialização
+        function init() {
+            if(currentUser) {
+                document.getElementById('userName').innerText = currentUser.name;
+                document.getElementById('userImg').src = currentUser.pic || 'https://api.dicebear.com/7.x/pixel-art/svg';
+            }
+            renderGames(games);
+            lucide.createIcons();
+        }
+
+        // Sistema de Perfil
+        function openProfileModal() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('profileModal').style.display = 'block';
+            if(currentUser) {
+                document.getElementById('regName').value = currentUser.name;
+                document.getElementById('regPic').value = currentUser.pic;
+            }
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('regName').value;
+            const pic = document.getElementById('regPic').value;
+            if(!name) return alert("Digite um Nick!");
+            
+            currentUser = { name, pic };
+            localStorage.setItem('gh_user', JSON.stringify(currentUser));
+            location.reload();
+        }
+
+        // Sistema de Postagem
+        function openPostModal() {
+            if(!currentUser) return alert("Você precisa se registrar no perfil primeiro para postar!");
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('postModal').style.display = 'block';
+        }
+
+        function saveGame() {
+            const title = document.getElementById('gameTitle').value;
+            const pic = document.getElementById('gamePic').value;
+            const url = document.getElementById('gameUrl').value;
+            const desc = document.getElementById('gameDesc').value;
+
+            if(!title || !url) return alert("Preencha Título e Link!");
+
+            const newGame = {
+                id: Date.now(),
+                title,
+                pic: pic || 'https://placehold.co/600x400/2e1065/white?text=Game',
+                url,
+                desc,
+                likes: 0,
+                likedBy: [] // Para controle de 1 like por pessoa
+            };
+
+            games.unshift(newGame);
+            localStorage.setItem('gh_games', JSON.stringify(games));
+            location.reload();
+        }
+
+        // Renderização e Pesquisa
+        function renderGames(data) {
+            const grid = document.getElementById('mainGrid');
             grid.innerHTML = '';
             data.forEach(game => {
                 grid.innerHTML += `
-                    <div class="game-card" onclick="playGame(${game.id})">
-                        <img src="${game.thumb}" class="game-thumb">
+                    <div class="game-card" onclick="openPoki(${game.id})">
+                        <img src="${game.pic}" class="game-thumb">
                         <div class="game-info">
                             <div class="game-title">${game.title}</div>
-                            <div class="game-meta">
-                                <span><i data-lucide="heart" style="width:12px"></i> ${game.likes}</span>
-                                <span><i data-lucide="eye" style="width:12px"></i> ${game.views}</span>
-                            </div>
+                            <div class="like-badge"><i data-lucide="heart" style="width:14px"></i> ${game.likes}</div>
                         </div>
                     </div>
                 `;
@@ -213,81 +282,56 @@
             lucide.createIcons();
         }
 
-        function toggleModal(id) {
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById(id).style.display = 'block';
+        function searchGames() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = games.filter(g => g.title.toLowerCase().includes(term));
+            
+            // Oculta o que não condiz
+            renderGames(filtered);
+            document.getElementById('sectionTitle').innerText = term ? `Resultados para: ${term}` : "Mais Recentes";
         }
 
-        function closeAllModals() {
+        // Player de Jogo (Poki)
+        function openPoki(id) {
+            const game = games.find(g => g.id === id);
+            document.getElementById('pokiTitle').innerText = game.title;
+            document.getElementById('pokiIframe').src = game.url;
+            document.getElementById('pokiLikeCount').innerText = game.likes;
+            document.getElementById('pokiPlayer').style.display = 'flex';
+
+            const likeBtn = document.getElementById('pokiLikeBtn');
+            
+            likeBtn.onclick = () => {
+                if(!currentUser) return alert("Faça login para curtir!");
+                
+                // Verifica se o usuário já deu like neste jogo
+                if(game.likedBy.includes(currentUser.name)) {
+                    alert("Você já curtiu este jogo!");
+                    return;
+                }
+
+                game.likes += 1;
+                game.likedBy.push(currentUser.name);
+                document.getElementById('pokiLikeCount').innerText = game.likes;
+                
+                // Salva no banco local
+                localStorage.setItem('gh_games', JSON.stringify(games));
+                renderGames(games);
+            };
+        }
+
+        function closePoki() {
+            document.getElementById('pokiPlayer').style.display = 'none';
+            document.getElementById('pokiIframe').src = '';
+        }
+
+        function closeModals() {
             document.getElementById('overlay').style.display = 'none';
+            document.getElementById('profileModal').style.display = 'none';
             document.getElementById('postModal').style.display = 'none';
         }
 
-        function addNewGame() {
-            const title = document.getElementById('postTitle').value;
-            const thumb = document.getElementById('postThumb').value;
-            const url = document.getElementById('postLink').value;
-
-            if(!title || !url) return alert("Preencha o título e o link!");
-
-            const newGame = {
-                id: Date.now(),
-                title: title,
-                thumb: thumb || 'https://placehold.co/400x200/2e1065/white?text=Game',
-                url: url,
-                likes: 0,
-                views: 0,
-                date: Date.now()
-            };
-
-            games.unshift(newGame);
-            renderGames();
-            closeAllModals();
-            alert("Jogo postado com sucesso!");
-        }
-
-        function playGame(id) {
-            const game = games.find(g => g.id === id);
-            game.views++;
-            document.getElementById('modalTitle').innerText = game.title;
-            document.getElementById('gameIframe').src = game.url;
-            document.getElementById('likeCount').innerText = game.likes;
-            document.getElementById('gamePlayer').style.display = 'flex';
-            
-            document.getElementById('modalLikeBtn').onclick = function() {
-                this.classList.toggle('liked');
-                if(this.classList.contains('liked')) {
-                    game.likes++;
-                } else {
-                    game.likes--;
-                }
-                document.getElementById('likeCount').innerText = game.likes;
-                renderGames();
-            };
-        }
-
-        function closeGame() {
-            document.getElementById('gamePlayer').style.display = 'none';
-            document.getElementById('gameIframe').src = '';
-        }
-
-        function sortGames(type) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            let sorted = [...games];
-            if(type === 'recent') sorted.sort((a,b) => b.date - a.date);
-            if(type === 'played') sorted.sort((a,b) => b.views - a.views);
-            if(type === 'liked') sorted.sort((a,b) => b.likes - a.likes);
-            
-            renderGames(sorted);
-        }
-
-        // Inicialização
-        window.onload = () => {
-            renderGames();
-            lucide.createIcons();
-        };
+        init();
     </script>
 </body>
 </html>
