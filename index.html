@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>Game Dev Space V3.0</title>
+<title>Game Dev Space V3.0 - Estilo Steam</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
@@ -12,50 +12,50 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-:root { --neon: #22c55e; --glow: rgba(34, 197, 94, 0.6); --bg: #050510; }
+:root { --neon: #22c55e; --glow: rgba(34, 197, 94, 0.6); --steam-bg: #171a21; --steam-blue: #66c0f4; }
 *{box-sizing:border-box; font-family: 'Inter', sans-serif;}
-body { margin:0; color:#fff; background: var(--bg); overflow-x: hidden; }
+body { margin:0; color:#fff; background: #050510; overflow-x: hidden; }
 
-/* Fundo Animado Tech */
 .bg-tech { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #1b1f3b 0%, #050510 100%); z-index: -1; }
 .bg-tech::after { content: ""; position: absolute; inset: 0; background-size: 50px 50px; background-image: linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px); animation: move-bg 12s linear infinite; }
 @keyframes move-bg { from { transform: translateY(0); } to { transform: translateY(50px); } }
 
 header { padding: 40px 20px; text-align: center; }
-header h1 { font-family: 'Orbitron', sans-serif; font-size: clamp(28px, 8vw, 50px); margin: 0; color: var(--neon); text-shadow: 0 0 25px var(--glow); letter-spacing: 4px; }
+header h1 { font-family: 'Orbitron', sans-serif; font-size: 40px; color: var(--neon); text-shadow: 0 0 20px var(--glow); margin: 0; }
 
-/* Barra de Pesquisa Funcional */
-.search-container { margin: 25px auto; width: 100%; max-width: 600px; }
-.search-container input { width: 100%; padding: 15px 30px; border-radius: 50px; border: 2px solid rgba(34, 197, 94, 0.3); background: rgba(0,0,0,0.8); color: #fff; font-size: 16px; outline: none; transition: 0.3s; text-align: center; }
-.search-container input:focus { border-color: var(--neon); box-shadow: 0 0 20px var(--glow); }
+.top-nav { position: absolute; right: 20px; top: 20px; display: flex; gap: 10px; align-items: center; }
+.user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; }
+.user-info img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--neon); }
 
-.top-nav { position: absolute; right: 20px; top: 20px; display: flex; gap: 10px; }
+.search-container { margin: 20px auto; max-width: 600px; }
+.search-container input { width: 100%; padding: 15px; border-radius: 30px; border: 1px solid var(--neon); background: rgba(0,0,0,0.7); color: #fff; text-align: center; outline: none; }
 
-/* Grid e Efeito Glow */
 main { max-width: 1200px; margin: auto; padding: 20px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
-.card { background: #0f1025; border-radius: 20px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); position: relative; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.card:hover { transform: translateY(-12px); box-shadow: 0 0 35px var(--glow); border-color: var(--neon); }
-.card img { width: 100%; height: 160px; object-fit: cover; transition: 0.3s; }
-.card-info { padding: 15px; text-align: center; }
-.card-info h3 { margin: 0; font-family: 'Orbitron', sans-serif; font-size: 14px; color: var(--neon); }
-.likes-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: var(--neon); border: 1px solid var(--neon); }
+.card { background: #0f1025; border-radius: 15px; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); position: relative; transition: 0.3s; }
+.card:hover { transform: translateY(-10px); box-shadow: 0 0 30px var(--glow); border-color: var(--neon); }
+.card img { width: 100%; height: 160px; object-fit: cover; }
+.likes-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 10px; color: var(--neon); font-size: 12px; }
 
-/* Comentários */
-.comments-section { max-width: 800px; margin: 40px auto; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 20px; text-align: left; }
-.comment-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
-.comment-item small { color: var(--neon); display: block; margin-bottom: 4px; }
+/* Comentários Estilo Steam */
+.steam-comments { max-width: 900px; margin: 40px auto; background: rgba(0,0,0,0.4); padding: 25px; border-radius: 10px; border-top: 2px solid var(--steam-blue); }
+.comment-card { background: rgba(255,255,255,0.03); margin-bottom: 15px; padding: 15px; display: flex; gap: 15px; border-radius: 5px; }
+.comment-card img { width: 50px; height: 50px; border-radius: 4px; }
+.comment-body { flex: 1; }
+.comment-body header { text-align: left; padding: 0; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.comment-body header strong { color: var(--steam-blue); font-size: 14px; }
+.comment-text { font-size: 14px; line-height: 1.5; color: #acb2b8; }
 
 /* Modais */
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-.modal-box { background: #0f1025; padding: 30px; border-radius: 25px; border: 2px solid var(--neon); width: 90%; max-width: 360px; text-align: center; }
-.modal-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; border: 1px solid #222; background: #050510; color: #fff; text-align: center; }
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+.modal-box { background: #1b2838; padding: 30px; border-radius: 10px; border: 1px solid var(--steam-blue); width: 95%; max-width: 400px; }
+.modal-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #000; background: #101822; color: #fff; }
 
-button { background: #4f46e5; color: #fff; border: none; padding: 12px 24px; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-button:hover { transform: scale(1.05); }
+button { background: #4f46e5; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+.btn-steam { background: linear-gradient(to right, #47bfff, #1a44c2); }
 
-#gameView { display: none; padding: 20px; text-align: center; }
-.iframe-container { width: 100%; height: 70vh; max-width: 1000px; margin: 20px auto; border-radius: 20px; border: 2px solid var(--neon); overflow: hidden; }
+#gameView { display: none; text-align: center; }
+.iframe-container { width: 100%; height: 75vh; border: 2px solid var(--neon); border-radius: 10px; overflow: hidden; margin: 20px 0; }
 iframe { width: 100%; height: 100%; border: none; }
 </style>
 </head>
@@ -65,29 +65,42 @@ iframe { width: 100%; height: 100%; border: none; }
 
 <header>
     <div class="top-nav">
-        <button id="adminBtn" style="background:var(--neon); color:#000">ADMIN</button>
+        <button id="adminBtn" style="background:var(--neon); color:#000; border-radius: 20px;">ADMIN</button>
+        <div id="userProfileTrigger" class="user-info" style="display:none">
+            <img id="myAvatar" src="https://via.placeholder.com/50">
+            <span id="myUsername">Perfil</span>
+        </div>
         <button id="loginOpenBtn">LOGIN</button>
         <button id="logoutBtn" style="display:none; background:#ef4444">SAIR</button>
     </div>
     <h1>GAME DEV SPACE</h1>
     <div class="search-container">
-        <input type="text" id="searchInp" placeholder="DIGITE O NOME DE UM JOGO PARA FILTRAR...">
+        <input type="text" id="searchInp" placeholder="BUSCAR JOGO NA BIBLIOTECA...">
     </div>
 </header>
 
+<div id="profileModal" class="modal">
+    <div class="modal-box">
+        <h2 style="font-family:Orbitron; color:var(--steam-blue)">MEU PERFIL</h2>
+        <input type="text" id="profNick" placeholder="Apelido/Username">
+        <input type="text" id="profPic" placeholder="Link da Foto (URL)">
+        <input type="text" id="profLink" placeholder="Link Rede Social (Instagram/GitHub)">
+        <button class="btn-steam" style="width:100%" onclick="saveProfile()">SALVAR PERFIL</button>
+        <button style="width:100%; background:transparent; margin-top:10px" onclick="document.getElementById('profileModal').style.display='none'">CANCELAR</button>
+    </div>
+</div>
+
 <div id="authModal" class="modal">
     <div class="modal-box">
-        <h2 id="authTitle" style="font-family:Orbitron; color:var(--neon)">LOGIN</h2>
+        <h2 id="authTitle" style="font-family:Orbitron">LOGIN</h2>
         <input type="email" id="emailInp" placeholder="E-mail">
         <input type="password" id="passInp" placeholder="Senha">
-        <button style="width:100%" id="primaryAuthBtn">ENTRAR</button>
-        <button style="width:100%; background:transparent; border: 1px solid #333; margin-top: 10px;" id="switchAuthBtn">CRIAR CONTA</button>
-        <button style="width:100%; background:transparent; color:#666; margin-top: 10px;" onclick="closeModals()">FECHAR</button>
+        <button class="btn-steam" style="width:100%" id="primaryAuthBtn">ENTRAR</button>
+        <button style="width:100%; background:transparent; margin-top:10px" onclick="closeModals()">FECHAR</button>
     </div>
 </div>
 
 <main id="home">
-    <h2 id="sectionLabel" style="font-family:Orbitron; font-size:18px; color:#888; margin-bottom:20px;">RANKING POR CURTIDAS</h2>
     <div class="grid" id="mainGrid"></div>
 </main>
 
@@ -104,11 +117,29 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
+const MASTER_PASS = "15423993946";
 let isAdminActive = false;
 let allGames = [];
-const MASTER_PASS = "15423993946";
+let myProfileData = {};
 
-// Auth e Modais
+// Gerenciamento de Perfil
+userProfileTrigger.onclick = () => document.getElementById('profileModal').style.display = 'flex';
+
+function saveProfile() {
+    const user = auth.currentUser;
+    if(!user) return;
+    const data = {
+        nick: profNick.value,
+        pic: profPic.value || "https://via.placeholder.com/50",
+        link: profLink.value
+    };
+    db.ref("profiles").child(user.uid).set(data).then(() => {
+        alert("Perfil atualizado!");
+        document.getElementById('profileModal').style.display = 'none';
+    });
+}
+
+// Auth
 const closeModals = () => authModal.style.display = "none";
 loginOpenBtn.onclick = () => authModal.style.display = "flex";
 
@@ -120,19 +151,31 @@ primaryAuthBtn.onclick = () => {
 auth.onAuthStateChanged(user => {
     loginOpenBtn.style.display = user ? "none" : "block";
     logoutBtn.style.display = user ? "block" : "none";
+    userProfileTrigger.style.display = user ? "flex" : "none";
+    if(user) {
+        db.ref("profiles").child(user.uid).on("value", snap => {
+            myProfileData = snap.val() || {};
+            myAvatar.src = myProfileData.pic || "https://via.placeholder.com/50";
+            myUsername.innerText = myProfileData.nick || "Perfil";
+            profNick.value = myProfileData.nick || "";
+            profPic.value = myProfileData.pic || "";
+            profLink.value = myProfileData.link || "";
+        });
+    }
 });
 logoutBtn.onclick = () => { auth.signOut(); isAdminActive = false; location.reload(); };
 
-// Admin Postar
+// Admin
 adminBtn.onclick = () => {
     if(prompt("SENHA ADMIN:") === MASTER_PASS) {
         isAdminActive = true;
+        alert("ADMIN ON!");
         const n = prompt("NOME:"), i = prompt("URL IMAGEM:"), u = prompt("URL JOGO:");
         if(n && u) db.ref("games").push({ name: n, img: i, url: u, likes: 0, date: Date.now() });
-    } else alert("Senha incorreta!");
+    }
 };
 
-// Renderização e Destaque (Ranking)
+// Render e Ranking
 db.ref("games").on("value", snap => {
     allGames = Object.entries(snap.val() || {}).map(([id, g]) => ({ id, ...g }));
     render(allGames);
@@ -140,29 +183,21 @@ db.ref("games").on("value", snap => {
 
 function render(list) {
     mainGrid.innerHTML = "";
-    // Ordena por mais curtidas primeiro
-    list.sort((a, b) => (b.likes || 0) - (a.likes || 0)).forEach(g => {
+    list.sort((a,b) => (b.likes || 0) - (a.likes || 0)).forEach(g => {
         const item = document.createElement("div");
         item.className = "card";
-        item.innerHTML = `
-            <div class="likes-badge">❤ ${g.likes || 0}</div>
-            <img src="${g.img || ''}">
-            <div class="card-info"><h3>${g.name.toUpperCase()}</h3></div>
-        `;
+        item.innerHTML = `<div class="likes-badge">❤ ${g.likes || 0}</div><img src="${g.img || ''}"><div class="card-info"><h3>${g.name.toUpperCase()}</h3></div>`;
         item.onclick = () => openGame(g);
         mainGrid.appendChild(item);
     });
 }
 
-// Barra de Pesquisa Funcional
 searchInp.oninput = (e) => {
     const t = e.target.value.toLowerCase();
-    const filtered = allGames.filter(g => g.name.toLowerCase().includes(t));
-    render(filtered);
-    sectionLabel.innerText = t ? `RESULTADOS PARA: ${t.toUpperCase()}` : "RANKING POR CURTIDAS";
+    render(allGames.filter(g => g.name.toLowerCase().includes(t)));
 };
 
-// Página do Jogo com Comentários e Like
+// Página do Jogo Estilo Steam
 function openGame(g) {
     home.style.display = "none";
     gameView.style.display = "block";
@@ -173,13 +208,13 @@ function openGame(g) {
             ${isAdminActive ? `<button onclick="del('${g.id}')" style="background:#ef4444">DELETAR</button>` : '<div></div>'}
         </div>
         <div class="iframe-container"><iframe src="${g.url}"></iframe></div>
-        <button onclick="like('${g.id}')" style="padding:15px 40px; font-size:18px; background:var(--neon); color:#000">CURTIR ❤ (${g.likes || 0})</button>
+        <button onclick="like('${g.id}')" style="padding:15px 40px; font-size:18px; background:var(--neon); color:#000; border-radius:30px">CURTIR ❤ (${g.likes || 0})</button>
         
-        <div class="comments-section">
-            <h3>💬 Comentários</h3>
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <input type="text" id="comInp" placeholder="Escreva algo..." style="flex:1; padding:10px; border-radius:10px; border:none;">
-                <button onclick="postComment('${g.id}')">ENVIAR</button>
+        <div class="steam-comments">
+            <h3 style="color:#fff; text-align:left">COMENTÁRIOS DOS USUÁRIOS</h3>
+            <div style="display:flex; gap:10px; margin-bottom:30px;">
+                <textarea id="comInp" placeholder="Deixe sua análise..." style="flex:1; height:80px; background:#101822; color:#fff; border:1px solid #333; padding:10px; border-radius:4px;"></textarea>
+                <button class="btn-steam" onclick="postComment('${g.id}')">PUBLICAR</button>
             </div>
             <div id="commentsList"></div>
         </div>
@@ -187,22 +222,15 @@ function openGame(g) {
     loadComments(g.id);
 }
 
-function like(id) {
-    if(!auth.currentUser) return alert("Faça login para curtir!");
-    db.ref("games").child(id).child("likes").transaction(l => (l || 0) + 1);
-    setTimeout(() => { // Gambiarra simples para atualizar o contador na tela sem fechar
-        const g = allGames.find(x => x.id === id);
-        openGame(g);
-    }, 500);
-}
-
 function postComment(gameId) {
     const text = document.getElementById("comInp").value;
     if(!text || !auth.currentUser) return alert("Faça login e escreva algo!");
     db.ref("comments").child(gameId).push({
-        user: auth.currentUser.email,
+        nick: myProfileData.nick || auth.currentUser.email,
+        pic: myProfileData.pic || "https://via.placeholder.com/50",
+        link: myProfileData.link || "",
         text: text,
-        date: Date.now()
+        date: new Date().toLocaleDateString()
     });
     document.getElementById("comInp").value = "";
 }
@@ -213,17 +241,29 @@ function loadComments(gameId) {
         if(!list) return;
         list.innerHTML = "";
         Object.values(snap.val() || {}).reverse().forEach(c => {
-            list.innerHTML += `<div class="comment-item"><small>${c.user}</small>${c.text}</div>`;
+            list.innerHTML += `
+                <div class="comment-card">
+                    <a href="${c.link || '#'}" target="_blank"><img src="${c.pic}"></a>
+                    <div class="comment-body">
+                        <header><strong>${c.nick}</strong> <small style="color:#666">${c.date}</small></header>
+                        <div class="comment-text">${c.text}</div>
+                    </div>
+                </div>`;
         });
     });
 }
 
+function like(id) {
+    if(!auth.currentUser) return alert("Login necessário!");
+    db.ref("games").child(id).child("likes").transaction(l => (l || 0) + 1);
+}
+
 function del(id) {
     if(prompt("SENHA PARA APAGAR:") === MASTER_PASS) {
-        db.ref("games").child(id).remove(); // Remove o jogo
-        db.ref("comments").child(id).remove(); // Remove os comentários dele também
+        db.ref("games").child(id).remove();
+        db.ref("comments").child(id).remove();
         back();
-    } else alert("Senha incorreta!");
+    }
 }
 
 function back() { gameView.style.display = "none"; home.style.display = "block"; }
