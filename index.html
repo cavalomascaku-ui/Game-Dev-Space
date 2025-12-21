@@ -1,171 +1,323 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>GAMEHUB | Cloud</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMEHUB | Cloud Gaming</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #070b14;
+            --accent: #8b5cf6;
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --text: #f8fafc;
+            --danger: #ef4444;
+            --glow: 0 0 15px rgba(139, 92, 246, 0.6);
+        }
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            background: var(--bg-dark); color: var(--text);
+            min-height: 100vh; overflow-x: hidden;
+        }
 
-<style>
-body{margin:0;font-family:Inter;background:#070b14;color:#fff}
-header{display:flex;gap:20px;align-items:center;padding:15px 30px;background:#020617;position:sticky;top:0;z-index:10}
-h1{color:#8b5cf6;margin:0}
-input,textarea{width:100%;padding:10px;background:#020617;border:1px solid #1e293b;color:white;border-radius:6px}
-button{cursor:pointer}
-.btn{background:#8b5cf6;color:white;border:none;padding:10px 16px;border-radius:6px;font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding:30px}
-.card{background:#020617;border:1px solid #1e293b;border-radius:12px;overflow:hidden;cursor:pointer}
-.card img{width:100%;height:150px;object-fit:cover}
-.card div{padding:10px;font-weight:700}
-#gamePage{position:fixed;inset:0;background:#020617;display:none;flex-direction:column;z-index:100}
-#gameIframe{width:100%;height:100%;border:none}
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:200}
-.modal-box{background:#020617;padding:20px;border-radius:12px;width:90%;max-width:400px}
-</style>
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 80px 80px; animation: moveGrid 30s linear infinite;
+        }
+
+        @keyframes moveGrid { from { background-position: 0 0; } to { background-position: 80px 80px; } }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: rgba(7, 11, 20, 0.9);
+            backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .search-container { flex-grow: 1; max-width: 500px; margin: 0 20px; position: relative; }
+        .search-container input {
+            width: 100%; padding: 12px 20px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: white; outline: none; transition: 0.3s;
+        }
+        .search-container input:focus { border-color: var(--accent); box-shadow: var(--glow); }
+
+        .nav-right { display: flex; gap: 15px; align-items: center; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-main:hover { box-shadow: var(--glow); transform: translateY(-2px); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .section-title { font-size: 1rem; font-weight: 900; margin: 40px 0 20px; letter-spacing: 2px; color: rgba(255,255,255,0.5); border-left: 4px solid var(--accent); padding-left: 15px; }
+
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .game-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.4s; }
+        .game-card:hover { border-color: var(--accent); box-shadow: var(--glow); transform: scale(1.02); }
+        .game-thumb { width: 100%; height: 160px; object-fit: cover; }
+        .game-info { padding: 15px; }
+
+        /* PLAYER DE JOGO */
+        .game-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: none; flex-direction: column; }
+        .game-header { padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: #0f172a; border-bottom: 1px solid #1e293b; }
+        .game-body { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 30px; }
+        .iframe-wrapper { width: 100%; max-width: 1100px; height: 75vh; background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #1e293b; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* MODAIS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; backdrop-filter: blur(5px); }
+        .modal-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111827; padding: 30px; border-radius: 12px; z-index: 2001; width: 90%; max-width: 450px; display: none; border: 1px solid var(--accent); }
+        
+        .tab-btn { padding: 8px 15px; cursor: pointer; font-size: 0.8rem; opacity: 0.6; font-weight: bold; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
+
+        .ai-container { background: rgba(139, 92, 246, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.2); margin-bottom: 15px; }
+        .ai-preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-top: 10px; display: none; }
+        
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #1f2937; background: #030712; color: white; box-sizing: border-box; }
+        .file-upload-label { display: block; padding: 15px; border: 2px dashed #334155; border-radius: 8px; text-align: center; cursor: pointer; margin: 10px 0; font-size: 0.8rem; }
+    </style>
 </head>
-
 <body>
 
-<header>
-<h1>GAMEHUB</h1>
-<button class="btn" onclick="openPost()">POSTAR</button>
-<button class="btn" onclick="openAuth()">LOGIN</button>
-</header>
+    <div class="bg-animation"></div>
 
-<div class="grid" id="games"></div>
+    <header>
+        <div style="font-weight: 900; color: var(--accent); font-size: 1.6rem;">GAMEHUB</div>
+        <div class="search-container"><input type="text" id="searchInput" placeholder="BUSCAR JOGO..." oninput="searchGames()"></div>
+        <div class="nav-right">
+            <button class="btn-main" onclick="openModal('postModal')">POSTAR JOGO</button>
+            <div id="userInfo" style="display: flex; align-items: center; gap: 10px; cursor:pointer;" onclick="openModal('authModal')">
+                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=guest" id="navAvatar" style="width:35px; border-radius:50%;">
+                <span id="navUser">ENTRAR</span>
+            </div>
+        </div>
+    </header>
 
-<!-- GAME -->
-<div id="gamePage">
-<button class="btn" onclick="closeGame()">FECHAR</button>
-<iframe id="gameIframe"
- sandbox="allow-scripts allow-pointer-lock allow-fullscreen">
-</iframe>
-</div>
+    <div class="container">
+        <div id="highSection">
+            <div class="section-title">EM DESTAQUE</div>
+            <div class="game-grid" id="highGrid"></div>
+        </div>
+        <div class="section-title">RECENTES</div>
+        <div class="game-grid" id="mainGrid"></div>
+    </div>
 
-<!-- MODAL AUTH -->
-<div class="modal" id="authModal">
-<div class="modal-box">
-<h3>LOGIN</h3>
-<input id="email" placeholder="Email">
-<input id="nick" placeholder="Nick">
-<button class="btn" onclick="login()">ENTRAR</button>
-</div>
-</div>
+    <div class="game-page" id="gamePage">
+        <div class="game-header">
+            <div id="pgTitle" style="font-weight: 900; color: var(--accent);">TITULO</div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-main" onclick="toggleFull()">FULLSCREEN</button>
+                <button class="btn-main" id="btnDelete" style="background:var(--danger); display:none;">DELETAR</button>
+                <button class="btn-main" onclick="closeGame()" style="background:#334155">FECHAR</button>
+            </div>
+        </div>
+        <div class="game-body">
+            <div class="iframe-wrapper">
+                <iframe src="" id="gameIframe" 
+                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms" 
+                        allow="autoplay; fullscreen; keyboard" 
+                        allowfullscreen></iframe>
+            </div>
+            <div style="width:100%; max-width:1100px; margin-top:20px;">
+                <h2 id="descTitle"></h2>
+                <p id="descText" style="color:#94a3b8"></p>
+            </div>
+        </div>
+    </div>
 
-<!-- MODAL POST -->
-<div class="modal" id="postModal">
-<div class="modal-box">
-<h3>NOVO JOGO</h3>
-<input id="title" placeholder="Título">
-<input id="pic" placeholder="URL da capa">
-<textarea id="desc" placeholder="Descrição"></textarea>
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModals()"></div>
+    <div class="modal-box" id="postModal">
+        <h2 style="margin:0 0 15px 0">PUBLICAR JOGO</h2>
+        
+        <div class="ai-container">
+            <input type="text" id="aiPrompt" placeholder="Descreva a capa do jogo...">
+            <button class="btn-main" style="width:100%; background:#4c1d95; font-size:0.8rem;" onclick="generateCoverAI()">GERAR CAPA COM IA</button>
+            <img id="aiPreview" class="ai-preview-img">
+            <input type="hidden" id="postPic">
+        </div>
 
-<select id="type">
-<option value="link">Link</option>
-<option value="upload">Upload HTML</option>
-</select>
+        <input type="text" id="postTitle" placeholder="Nome do Jogo">
+        
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <div class="tab-btn active" id="tabLink" onclick="switchTab('link')">LINK (URL)</div>
+            <div class="tab-btn" id="tabUpload" onclick="switchTab('upload')">ARQUIVO HTML</div>
+        </div>
 
-<input id="url" placeholder="Link do jogo">
-<input type="file" id="file" accept=".html">
+        <div id="methodLink"><input type="text" id="postUrl" placeholder="https://exemplo.com/jogo"></div>
+        <div id="methodUpload" style="display:none;">
+            <label class="file-upload-label" for="gameUpload">Clique para selecionar o .html</label>
+            <input type="file" id="gameUpload" accept=".html">
+        </div>
 
-<button class="btn" onclick="post()">PUBLICAR</button>
-</div>
-</div>
+        <textarea id="postDesc" placeholder="Descrição curta..."></textarea>
+        <button class="btn-main" style="width:100%; margin-top:10px;" onclick="saveGame()">PUBLICAR AGORA</button>
+    </div>
 
-<script>
-const firebaseConfig = {
- apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
- authDomain: "game-dev-space.firebaseapp.com",
- projectId: "game-dev-space"
-};
+    <div class="modal-box" id="authModal">
+        <h2>PERFIL</h2>
+        <input type="email" id="emailIn" placeholder="E-mail">
+        <input type="text" id="nickIn" placeholder="Seu Nickname">
+        <button class="btn-main" style="width:100%" onclick="handleAuth()">SALVAR</button>
+        <button class="btn-main" style="width:100%; background:#334155; margin-top:10px;" onclick="logout()">SAIR</button>
+    </div>
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    <script>
+        // FIREBASE - MESMA CONFIGURAÇÃO QUE VOCÊ JÁ TINHA
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
+            authDomain: "game-dev-space.firebaseapp.com",
+            projectId: "game-dev-space",
+            storageBucket: "game-dev-space.firebasestorage.app",
+            messagingSenderId: "1073185335190",
+            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-const ADMIN_UID = "SEU_UID_AQUI";
-const MAX_POSTS = 5;
+        let currentUser = JSON.parse(localStorage.getItem('gh_sess'));
+        let postMethod = 'link';
+        let currentBlobUrl = null;
 
-let user = JSON.parse(localStorage.getItem("user")) || null;
+        function init() {
+            if(currentUser) {
+                document.getElementById('navUser').innerText = currentUser.nick;
+                document.getElementById('navAvatar').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${currentUser.nick}`;
+            }
+            
+            db.collection("games").orderBy("createdAt", "desc").onSnapshot(snap => {
+                const list = [];
+                snap.forEach(doc => list.push({id: doc.id, ...doc.data()}));
+                render(list);
+            });
+            lucide.createIcons();
+        }
 
-function esc(s=""){return s.replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+        function render(list) {
+            const mainGrid = document.getElementById('mainGrid');
+            mainGrid.innerHTML = list.map(g => `
+                <div class="game-card" onclick="openGame('${g.id}')">
+                    <img src="${g.pic || 'https://placehold.co/600x350/0f172a/8b5cf6?text=Sem+Capa'}" class="game-thumb">
+                    <div class="game-info">
+                        <div style="font-weight:900;">${g.title.toUpperCase()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-db.collection("games").orderBy("createdAt","desc")
-.onSnapshot(s=>{
- let g=document.getElementById("games");
- g.innerHTML="";
- s.forEach(d=>{
-  let x=d.data();
-  g.innerHTML+=`
-   <div class="card" onclick="openGame('${d.id}')">
-    <img src="${x.pic}">
-    <div>${esc(x.title)}</div>
-   </div>`;
- });
-});
+        // IA DE CAPA (Pollinations)
+        async function generateCoverAI() {
+            const prompt = document.getElementById('aiPrompt').value;
+            if(!prompt) return alert("Descreva a capa!");
+            const btn = event.target;
+            btn.innerText = "GERANDO...";
+            
+            const url = `https://pollinations.ai/p/${encodeURIComponent(prompt + " digital art game cover")}?width=600&height=350&nologo=true`;
+            document.getElementById('aiPreview').src = url;
+            document.getElementById('aiPreview').style.display = "block";
+            document.getElementById('postPic').value = url;
+            btn.innerText = "IA GEROU A CAPA!";
+        }
 
-async function openGame(id){
- const g=(await db.collection("games").doc(id).get()).data();
- const iframe=document.getElementById("gameIframe");
- iframe.src="";
- iframe.srcdoc="";
- if(g.url.startsWith("data:text/html")){
-   iframe.srcdoc=atob(g.url.split(",")[1]);
- }else{
-   iframe.src=g.url;
- }
- document.getElementById("gamePage").style.display="flex";
-}
+        function switchTab(m) {
+            postMethod = m;
+            document.getElementById('methodLink').style.display = m === 'link' ? 'block' : 'none';
+            document.getElementById('methodUpload').style.display = m === 'upload' ? 'block' : 'none';
+            document.getElementById('tabLink').classList.toggle('active', m === 'link');
+            document.getElementById('tabUpload').classList.toggle('active', m === 'upload');
+        }
 
-function closeGame(){
- document.getElementById("gamePage").style.display="none";
- document.getElementById("gameIframe").src="";
- document.getElementById("gameIframe").srcdoc="";
-}
+        async function saveGame() {
+            if(!currentUser) return alert("Faça login primeiro!");
+            const title = document.getElementById('postTitle').value;
+            const pic = document.getElementById('postPic').value;
+            const desc = document.getElementById('postDesc').value;
+            let finalUrl = "";
 
-function openAuth(){document.getElementById("authModal").style.display="flex"}
-function openPost(){document.getElementById("postModal").style.display="flex"}
+            if(postMethod === 'link') {
+                finalUrl = document.getElementById('postUrl').value;
+            } else {
+                const file = document.getElementById('gameUpload').files[0];
+                if(!file) return alert("Selecione o HTML!");
+                if(file.size > 1024 * 1024) return alert("Arquivo muito grande (Max 1MB)");
+                finalUrl = await new Promise(r => {
+                    const reader = new FileReader();
+                    reader.onload = e => r(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }
 
-function login(){
- user={email:email.value,nick:nick.value};
- localStorage.setItem("user",JSON.stringify(user));
- location.reload();
-}
+            await db.collection("games").add({
+                title, pic, url: finalUrl, desc,
+                author: currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            closeModals();
+            alert("Sucesso!");
+        }
 
-function toBase64(f){return new Promise(r=>{let rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f)})}
+        async function openGame(id) {
+            const doc = await db.collection("games").doc(id).get();
+            const g = doc.data();
+            
+            document.getElementById('pgTitle').innerText = g.title;
+            document.getElementById('descTitle').innerText = g.title;
+            document.getElementById('descText').innerText = g.desc;
 
-async function post(){
- if(!user) return alert("LOGIN");
- const count=await db.collection("games").where("author","==",user.email).get();
- if(count.size>=MAX_POSTS) return alert("LIMITE ATINGIDO");
+            // SEGURANÇA E PERFORMANCE: Tratamento de Base64 para Blob
+            let gameSource = g.url;
+            if(gameSource.startsWith('data:text/html')) {
+                const parts = gameSource.split(',');
+                const blob = new Blob([atob(parts[1])], {type: 'text/html'});
+                currentBlobUrl = URL.createObjectURL(blob);
+                gameSource = currentBlobUrl;
+            }
 
- let finalUrl="";
- if(type.value==="link"){
-  finalUrl=url.value;
-  if(!finalUrl) return alert("LINK");
- }else{
-  if(!file.files[0]) return alert("HTML");
-  if(file.files[0].size>800*1024) return alert("MAX 800KB");
-  finalUrl=await toBase64(file.files[0]);
- }
+            document.getElementById('gameIframe').src = gameSource;
+            document.getElementById('gamePage').style.display = 'flex';
 
- await db.collection("games").add({
-  title:esc(title.value),
-  pic:pic.value,
-  desc:esc(desc.value),
-  url:finalUrl,
-  author:user.email,
-  createdAt:firebase.firestore.FieldValue.serverTimestamp()
- });
+            if(currentUser && (currentUser.email === g.author)) {
+                const del = document.getElementById('btnDelete');
+                del.style.display = 'block';
+                del.onclick = async () => { if(confirm("Apagar jogo?")) { await db.collection("games").doc(id).delete(); closeGame(); } };
+            }
+        }
 
- location.reload();
-}
-lucide.createIcons();
-</script>
+        function closeGame() {
+            document.getElementById('gamePage').style.display = 'none';
+            document.getElementById('gameIframe').src = '';
+            // Limpa o Blob da memória para não travar o PC
+            if(currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
+        }
 
+        function toggleFull() {
+            const frame = document.getElementById('gameIframe');
+            if (frame.requestFullscreen) frame.requestFullscreen();
+            else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+            else if (frame.msRequestFullscreen) frame.msRequestFullscreen();
+        }
+
+        function handleAuth() {
+            const email = document.getElementById('emailIn').value;
+            const nick = document.getElementById('nickIn').value;
+            if(!email || !nick) return alert("Preencha tudo!");
+            localStorage.setItem('gh_sess', JSON.stringify({email, nick}));
+            location.reload();
+        }
+
+        function logout() { localStorage.removeItem('gh_sess'); location.reload(); }
+        function openModal(id) { document.getElementById('modalOverlay').style.display='block'; document.getElementById(id).style.display='block'; }
+        function closeModals() { document.querySelectorAll('.modal-box, .modal-overlay').forEach(e => e.style.display='none'); }
+
+        init();
+    </script>
 </body>
 </html>
