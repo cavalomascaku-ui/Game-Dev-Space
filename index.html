@@ -1,452 +1,1339 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAMEHUB | Cloud</title>
-    
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hollow Knight Web Clone - Multiplayer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        :root {
-            --bg-dark: #070b14;
-            --accent: #8b5cf6;
-            --card-bg: rgba(15, 23, 42, 0.9);
-            --text: #f8fafc;
-            --danger: #ef4444;
-            --glow: 0 0 15px rgba(139, 92, 246, 0.6);
-            --gold: #fbbf24;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+        
         body {
-            margin: 0; font-family: 'Inter', sans-serif;
-            background: var(--bg-dark); color: var(--text);
-            min-height: 100vh; overflow-x: hidden;
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f0f16;
+            color: white;
+            font-family: 'Cinzel', serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: crosshair;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .bg-animation {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 80px 80px; animation: moveGrid 30s linear infinite;
+        canvas {
+            display: block;
+            background-color: #0f0f16;
+            image-rendering: pixelated;
         }
 
-        @keyframes moveGrid { from { background-position: 0 0; } to { background-position: 80px 80px; } }
+        /* UI Overlay */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
 
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 20px; background: rgba(7, 11, 20, 0.95);
-            backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
             gap: 10px;
         }
 
-        .logo-area { display: flex; flex-direction: column; min-width: 120px; }
-
-        .search-container { flex-grow: 1; max-width: 400px; position: relative; }
-        .search-container input {
-            width: 100%; padding: 10px 15px; border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
-            color: white; outline: none; transition: 0.3s; font-size: 0.9rem;
+        .health-container {
+            display: flex;
+            gap: 5px;
         }
-        .search-container input:focus { border-color: var(--accent); box-shadow: var(--glow); }
 
-        .nav-right { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
-        
-        .btn-main { 
-            background: var(--accent); color: white; border: none; 
-            padding: 8px 15px; border-radius: 4px; cursor: pointer; 
-            font-weight: bold; transition: 0.3s; font-size: 0.8rem;
-            white-space: nowrap;
+        .mask {
+            width: 30px;
+            height: 35px;
+            background: #e0e0e0;
+            border: 2px solid #1a1a1a;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            transition: all 0.2s;
         }
-        .btn-main:hover { box-shadow: var(--glow); transform: translateY(-1px); }
-
-        .user-profile { 
-            cursor: pointer; display: flex; align-items: center; gap: 8px; 
-            padding: 5px 10px; border-radius: 4px; background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(255,255,255,0.1);
+        .mask.broken {
+            background: #333;
+            border-color: #111;
+            opacity: 0.5;
+            transform: scale(0.8);
         }
-        .user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: #1e293b; border: 1px solid var(--accent); }
-        #navUser { font-size: 0.8rem; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .section-title { font-size: 0.9rem; font-weight: 900; margin: 30px 0 15px; letter-spacing: 2px; color: rgba(255,255,255,0.5); border-left: 4px solid var(--accent); padding-left: 15px; }
+        .soul-container {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #d4d4d4;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
 
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .game-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.4s; position: relative; }
-        .game-card:hover { border-color: var(--accent); box-shadow: var(--glow); transform: translateY(-5px); }
-        .game-thumb { width: 100%; height: 150px; object-fit: cover; }
-        .game-info { padding: 12px; }
-        .view-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); padding: 3px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; display: flex; align-items: center; gap: 4px; color: #fff; z-index: 2; }
+        .soul-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, #fdfdfd, #a8a8a8);
+            transition: height 0.2s;
+            opacity: 0.8;
+            box-shadow: 0 0 15px white;
+        }
 
-        .game-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: none; flex-direction: column; }
-        .game-header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: #0f172a; border-bottom: 1px solid #1e293b; }
-        .game-body { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .iframe-wrapper { width: 100%; max-width: 1000px; height: 70vh; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* Online Status */
+        #online-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #server-id {
+            display: none; 
+            color: #666; 
+            font-size: 0.7rem; 
+            margin-right: 5px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #444;
+        }
+        .status-dot.connected { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; backdrop-filter: blur(8px); }
-        .modal-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0f172a; padding: 25px; border-radius: 12px; z-index: 2001; width: 90%; max-width: 400px; display: none; border: 1px solid rgba(139, 92, 246, 0.3); max-height: 90vh; overflow-y: auto; }
+        /* Menus */
+        .menu-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 100;
+        }
+
+        .menu-title {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            background: linear-gradient(to bottom, #fff, #999);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #ddd;
+            padding: 15px 40px;
+            margin: 10px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            border-color: white;
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Controls Visuals */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 40px;
+            background: rgba(0,0,0,0.6);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .key-row { 
+            display: flex; 
+            align-items: center; 
+            font-size: 1rem; 
+            color: #ccc;
+            justify-content: space-between;
+        }
+
+        .key-cap { 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            background: #2a2a2a; 
+            border: 1px solid #555; 
+            border-bottom: 3px solid #111;
+            border-radius: 4px; 
+            padding: 4px 10px; 
+            margin-left: 8px;
+            font-family: sans-serif; 
+            font-weight: bold;
+            color: #fff; 
+            min-width: 20px;
+            font-size: 0.9rem;
+        }
         
-        .admin-btn { background: var(--gold); color: black; display: none; }
-        .admin-badge { background: var(--gold); color: black; padding: 1px 5px; border-radius: 3px; font-size: 0.55rem; font-weight: 900; margin-top: 2px; align-self: flex-start; }
-        .id-copy { font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color: #64748b; cursor: pointer; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); }
+        .mouse-icon {
+            width: 24px;
+            height: 32px;
+            border: 2px solid #888;
+            border-radius: 12px;
+            position: relative;
+            margin-left: 8px;
+        }
+        .mouse-icon::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 8px;
+            background: #888;
+        }
+        .mouse-l { background: linear-gradient(90deg, #555 50%, transparent 50%); }
+        .mouse-r { background: linear-gradient(90deg, transparent 50%, #555 50%); }
 
-        input, textarea { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #1e293b; background: #070b14; color: white; box-sizing: border-box; font-family: inherit; }
+        .hidden { display: none !important; }
         
-        .file-upload-label { display: block; padding: 10px; margin: 8px 0; border: 2px dashed #1e293b; border-radius: 6px; text-align: center; cursor: pointer; color: #64748b; font-size: 0.75rem; }
-        .file-upload-label:hover { border-color: var(--accent); color: white; }
-        input[type="file"] { display: none; }
+        .notification {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border: 1px solid #555;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            color: white;
+            font-family: 'Cinzel', serif;
+        }
 
-        .tab-btn { padding: 5px 10px; cursor: pointer; font-size: 0.75rem; opacity: 0.5; font-weight: bold; }
-        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
+        /* Chat Input */
+        #chat-container {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            pointer-events: auto;
+            display: none;
+        }
+        #chat-input {
+            width: 100%;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #666;
+            color: white;
+            padding: 10px;
+            font-family: 'Cinzel', serif;
+            outline: none;
+            text-align: center;
+        }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #070b14; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        /* Server List Styles */
+        .server-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            cursor: default;
+            transition: background 0.2s;
+        }
+        .server-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #444;
+        }
+        .btn-join-small {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            color: #ddd;
+            padding: 4px 10px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-join-small:hover {
+            background: #fff;
+            color: #000;
+        }
     </style>
 </head>
 <body>
 
-    <div class="bg-animation"></div>
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
 
-    <header>
-        <div class="logo-area">
-            <div style="font-weight: 900; color: var(--accent); font-size: 1.3rem; letter-spacing: -1px; line-height: 1;">GAMEHUB</div>
-            <span id="adminBadge" style="display:none;" class="admin-badge">GOD MODE</span>
+    <div id="ui-layer">
+        <div id="online-status">
+            <span id="server-id">cs-low-poly</span>
+            <div id="net-dot" class="status-dot"></div>
+            <span id="player-count">Offline</span>
         </div>
 
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="BUSCAR JOGO..." oninput="searchGames()">
+        <div id="hud" class="hidden">
+            <div class="health-container" id="health-bar"></div>
+            <div class="soul-container">
+                <div class="soul-liquid" id="soul-meter"></div>
+            </div>
+            <!-- Chat Hint -->
+            <div style="font-size: 0.8rem; color: #666; margin-top: 10px;">Press 'T' to Chat</div>
         </div>
 
-        <div class="nav-right">
-            <button class="btn-main admin-btn" id="btnAdminNav" onclick="checkAdminPass()">ADMIN</button>
-            <button class="btn-main" onclick="openModal('postModal')">POSTAR</button>
+        <div id="chat-container">
+            <input type="text" id="chat-input" placeholder="Say something..." maxlength="30">
+        </div>
+
+        <div id="notification" class="notification">Saved Game</div>
+
+        <div id="start-screen" class="menu-screen">
+            <h1 class="menu-title">Vessel's Journey</h1>
+            <p style="color: #888; margin-top: -20px; margin-bottom: 30px;">Multiplayer Online</p>
             
-            <div class="user-profile" onclick="openModal('authModal')">
-                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=guest" id="navAvatar" class="user-avatar">
-                <span id="navUser">ENTRAR</span>
-            </div>
-            <button class="btn-main" onclick="logout()" style="background: rgba(255,255,255,0.05); padding: 8px; width: 35px;" title="Sair">
-                <i data-lucide="log-out" style="width: 16px;"></i>
-            </button>
-        </div>
-    </header>
-
-    <div class="container">
-        <div id="highSection">
-            <div class="section-title">EM ALTA</div>
-            <div class="game-grid" id="highGrid"></div>
-        </div>
-        <div class="section-title">BIBLIOTECA COMPLETA</div>
-        <div class="game-grid" id="mainGrid"></div>
-    </div>
-
-    <div class="game-page" id="gamePage">
-        <div class="game-header">
-            <div style="display:flex; flex-direction:column;">
-                <div id="pgTitle" style="font-weight: 900; text-transform: uppercase; color: var(--accent); font-size: 1rem;">TITULO</div>
-                <div id="pgId" class="id-copy" onclick="copyId()">ID: ...</div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-main" onclick="toggleFull()">TELA CHEIA</button>
-                <button class="btn-main" id="btnDelete" style="background:var(--danger); display:none;">DELETAR</button>
-                <button onclick="closeGame()" class="btn-main" style="background:#1e293b">SAIR</button>
-            </div>
-        </div>
-        <div class="game-body">
-            <div class="iframe-wrapper"><iframe src="" id="gameIframe" allowfullscreen></iframe></div>
-            <div style="width:100%; max-width:1000px; margin-top:20px; background:rgba(255,255,255,0.02); padding:20px; border-radius:12px; border: 1px solid rgba(255,255,255,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 id="descTitle" style="margin:0; font-size: 1.2rem;"></h2>
-                    <div style="display:flex; gap: 15px; align-items:center;">
-                         <div style="display:flex; align-items:center; gap:5px; color:#64748b; font-size: 0.9rem;">
-                            <i data-lucide="eye" style="width:16px;"></i> <span id="viewCount">0</span>
-                        </div>
-                        <div class="like-btn-container" id="likeBtn" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                            <i data-lucide="heart" id="heartIcon" style="width: 24px; transition: 0.3s;"></i>
-                            <span id="likeCount" style="font-weight: 900;">0</span>
-                        </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px; width: 100%; max-width: 400px; background: rgba(0,0,0,0.8); padding: 20px; border: 1px solid #444; border-radius: 8px;">
+                
+                <div style="width: 100%; padding-bottom: 15px; border-bottom: 1px solid #333;">
+                    <label style="display: block; color: #fff; font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; text-align: center;">CREATE OR JOIN BY CODE</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="room-code-input" placeholder="Room Name" maxlength="15" 
+                            style="flex: 2; background: rgba(255,255,255,0.1); border: 1px solid #666; color: #fff; padding: 8px; 
+                            font-family: 'Cinzel', serif; text-align: center; font-size: 1rem; text-transform: uppercase;">
+                        
+                        <input type="number" id="capacity-input" value="4" min="2" max="32" placeholder="Max"
+                            style="flex: 0.5; background: rgba(0,0,0,0.3); border: 1px solid #555; color: white; padding: 8px; 
+                            font-family: 'Cinzel', serif; text-align: center;">
+                        
+                        <button class="btn" id="btn-join" style="flex: 1; margin: 0; padding: 0; font-size: 0.8rem; background: #333;">GO</button>
                     </div>
                 </div>
-                <p id="descText" style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6;"></p>
+
+                <div style="width: 100%;">
+                    <label style="display: block; color: #aaa; font-size: 0.8rem; margin-bottom: 10px; text-align: left;">BROWSE ACTIVE SERVERS</label>
+                    
+                    <div id="server-list-container" style="
+                        width: 100%; 
+                        height: 150px; 
+                        background: rgba(0,0,0,0.3); 
+                        border: 1px solid #333; 
+                        overflow-y: auto; 
+                        display: flex; 
+                        flex-direction: column; 
+                        gap: 2px;
+                        padding: 2px;
+                    ">
+                        <div style="color: #666; font-size: 0.8rem; padding: 10px; text-align: center;">Connecting to Lobby...</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" id="btn-settings">Settings</button>
+            
+            <div class="controls-grid">
+                <div class="key-row"><span>Movement</span> <div><span class="key-cap">A</span><span class="key-cap">D</span></div></div>
+                <div class="key-row"><span>Look / Aim</span> <div><span class="key-cap">W</span><span class="key-cap">S</span></div></div>
+                <div class="key-row"><span>Jump</span> <span class="key-cap">SPACE</span></div>
+                <div class="key-row"><span>Dash</span> <span class="key-cap">SHIFT</span></div>
+                <div class="key-row"><span>Attack</span> <div class="mouse-icon mouse-l"></div></div>
+                <div class="key-row"><span>Heal (Hold)</span> <div class="mouse-icon mouse-r"></div></div>
+                <div class="key-row"><span>Chat</span> <span class="key-cap">T</span></div>
             </div>
         </div>
-    </div>
 
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModals()"></div>
-    
-    <div class="modal-box" id="adminModal" style="border-color: var(--gold);">
-        <h2 style="margin:0 0 15px; color: var(--gold); font-size: 1.1rem;">GOD MODE PANEL</h2>
-        <input type="text" id="adminGameId" placeholder="COLE O ID DO JOGO">
-        <hr style="border:0; border-top:1px solid #1e293b; margin:15px 0;">
-        <input type="text" id="adminNewTitle" placeholder="NOVO TÍTULO">
-        <button class="btn-main" style="width:100%; background: #1e293b; margin-bottom:10px;" onclick="adminUpdate('title')">ALTERAR TÍTULO</button>
-        <input type="number" id="adminLikes" placeholder="QUANTIDADE DE LIKES">
-        <button class="btn-main" style="width:100%; background: #1e293b; margin-bottom:10px;" onclick="adminUpdate('likes')">DEFINIR LIKES</button>
-        <input type="number" id="adminViews" placeholder="QUANTIDADE DE VIEWS">
-        <button class="btn-main" style="width:100%; background: #1e293b;" onclick="adminUpdate('views')">DEFINIR VIEWS</button>
-    </div>
+        <!-- SETTINGS MENU -->
+        <div id="settings-menu" class="menu-screen hidden">
+            <h2 class="menu-title" style="font-size: 2rem;">Settings</h2>
+            
+            <div style="width: 300px; display: flex; flex-direction: column; gap: 20px; background: rgba(0,0,0,0.6); padding: 30px; border-radius: 8px; border: 1px solid #444; text-align: center;">
+                <p style="color: #aaa;">No Audio Options Available</p>
+                <p style="color: #666; font-size: 0.8rem;">Sound has been disabled.</p>
+            </div>
 
-    <div class="modal-box" id="authModal">
-        <h2 style="margin:0 0 15px; font-size: 1.1rem;">MINHA CONTA</h2>
-        <input type="email" id="emailIn" placeholder="E-MAIL">
-        <input type="text" id="nickIn" placeholder="NICKNAME">
-        <div style="margin-top: 10px;">
-            <label for="picUpload" class="file-upload-label">📸 CLIQUE PARA FOTO DE PERFIL</label>
-            <input type="file" id="picUpload" accept="image/*" onchange="previewFile('picUpload', 'picPreview')">
-            <img id="picPreview" src="" style="width: 50px; height: 50px; border-radius: 50%; display: none; margin: 10px auto; object-fit: cover; border: 2px solid var(--accent);">
+            <button class="btn" id="btn-settings-back" style="margin-top: 30px;">Back</button>
         </div>
-        <button class="btn-main" style="width:100%; margin-top: 10px;" onclick="handleAuth()">ENTRAR / SALVAR</button>
+
+        <div id="pause-menu" class="menu-screen hidden">
+            <h2 class="menu-title" style="font-size: 2rem;">Paused</h2>
+            <button class="btn" id="btn-resume">Resume</button>
+            <button class="btn" id="btn-save">Bench (Save)</button>
+            <button class="btn" id="btn-quit">Quit</button>
+        </div>
     </div>
+</div>
 
-    <div class="modal-box" id="postModal">
-        <h2 style="margin:0 0 15px; font-size: 1.1rem;">PUBLICAR JOGO</h2>
-        <input type="text" id="postTitle" placeholder="TITULO DO JOGO">
-        <div style="background: rgba(139, 92, 246, 0.1); padding: 12px; border-radius: 8px; margin: 10px 0;">
-            <textarea id="aiPrompt" placeholder="Descreva a capa (Ex: Cyberpunk car)" rows="2" style="font-size: 0.8rem;"></textarea>
-            <button class="btn-main" style="width: 100%; font-size: 0.7rem; background: #4c1d95;" onclick="generateCoverAI()">GERAR CAPA COM AI</button>
-            <img id="aiPreview" style="width:100%; height:120px; object-fit:cover; display:none; border-radius:6px; margin-top:10px; border:1px solid var(--accent);">
-            <input type="hidden" id="postPic">
-        </div>
-        <div style="display: flex; gap: 10px; margin: 10px 0;">
-            <span class="tab-btn active" id="tabLink" onclick="switchTab('link')">URL/LINK</span>
-            <span class="tab-btn" id="tabUpload" onclick="switchTab('upload')">ARQUIVO HTML</span>
-        </div>
-        <div id="methodLink"><input type="text" id="postUrl" placeholder="https://link-do-jogo.com"></div>
-        <div id="methodUpload" style="display: none;">
-            <label for="gameUpload" class="file-upload-label">SELECIONAR .HTML</label>
-            <input type="file" id="gameUpload" accept=".html">
-        </div>
-        <textarea id="postDesc" placeholder="DESCRIÇÃO CURTA" rows="2"></textarea>
-        <button class="btn-main" style="width:100%" onclick="saveGame()">PUBLICAR AGORA</button>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, remove, update, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A",
-            authDomain: "game-dev-space.firebaseapp.com",
-            databaseURL: "https://game-dev-space-default-rtdb.firebaseio.com",
-            projectId: "game-dev-space",
-            storageBucket: "game-dev-space.firebasestorage.app",
-            messagingSenderId: "1073185335190",
-            appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
-        };
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIKPooiHzcB5d8_mRiDMyiam4AYel4lZs",
+      authDomain: "cs-low-poly.firebaseapp.com",
+      databaseURL: "https://cs-low-poly-default-rtdb.firebaseio.com",
+      projectId: "cs-low-poly",
+      storageBucket: "cs-low-poly.firebasestorage.app",
+      messagingSenderId: "291417778108",
+      appId: "1:291417778108:web:881869dd93735c6167edb9"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    // --- NETWORK MANAGER ---
+    const Network = {
+        app: null,
+        db: null,
+        auth: null,
+        playerId: null,
+        playerName: null,
+        playerRef: null,
+        roomRef: null,
+        remotePlayers: {},
+        connected: false,
+        lastUpdate: 0,
+        currentRoom: null,
         
-        const ADMIN_EMAIL = "contapropredro@gmail.com";
-        const ADMIN_PASS = "15423993946";
+        initApp: async () => {
+             if (!Network.app) {
+                Network.app = initializeApp(firebaseConfig);
+                Network.db = getDatabase(Network.app);
+                Network.auth = getAuth(Network.app);
+                
+                Network.playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+                Network.playerName = "Vessel " + Math.floor(Math.random() * 1000);
 
-        let currentUser = null;
-        let postMethod = 'link';
-        let currentGameId = null;
+                try {
+                    await signInAnonymously(Network.auth);
+                    console.log("Authenticated with Firebase");
+                    Network.startServerBrowser();
+                } catch (error) {
+                    console.error("Auth Error:", error);
+                    alert("Authentication Failed: " + error.message);
+                }
+             }
+        },
 
-        function init() {
-            // Carrega sessão salva
-            const saved = localStorage.getItem('gh_sess');
-            if(saved) {
-                currentUser = JSON.parse(saved);
-                updateNavUser();
-                checkAdminDisplay();
-            }
+        startServerBrowser: () => {
+            const listRef = ref(Network.db, 'hk_multiplayer/rooms');
+            onValue(listRef, (snapshot) => {
+                const rooms = snapshot.val() || {};
+                const listEl = document.getElementById('server-list-container');
+                listEl.innerHTML = ''; 
 
-            // Monitora Jogos
-            db.collection("games").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-                const list = [];
-                snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-                render(list);
+                if (Object.keys(rooms).length === 0) {
+                    listEl.innerHTML = '<div style="color: #666; font-size: 0.8rem; padding: 10px;">No active servers found. Create one above!</div>';
+                    return;
+                }
+
+                Object.keys(rooms).forEach(roomCode => {
+                    const r = rooms[roomCode];
+                    const count = r.players ? Object.keys(r.players).length : 0;
+                    const max = r.settings ? r.settings.maxPlayers : 4;
+                    
+                    const el = document.createElement('div');
+                    el.className = 'server-item';
+                    el.innerHTML = `
+                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                            <span style="color:white; font-weight:bold;">${roomCode}</span>
+                            <span style="color:#888; font-size:0.7rem;">Map: Hallownest</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <span style="color: ${count >= max ? '#d32f2f' : '#4caf50'}">${count}/${max}</span>
+                            <button class="btn-join-small">JOIN</button>
+                        </div>
+                    `;
+                    el.querySelector('.btn-join-small').addEventListener('click', () => {
+                         Network.attemptJoin(roomCode, max);
+                    });
+                    listEl.appendChild(el);
+                });
             });
-            lucide.createIcons();
+        },
+
+        attemptJoin: async (roomCode, capacity) => {
+            try {
+                if (!Network.auth.currentUser) await Network.initApp();
+
+                const db = Network.db;
+                const roomRef = ref(db, `hk_multiplayer/rooms/${roomCode}`);
+                
+                const snapshot = await get(roomRef);
+                const val = snapshot.val() || {};
+                const players = val.players || {};
+                let settings = val.settings || {};
+                
+                let maxPlayers = settings.maxPlayers;
+                
+                if (!maxPlayers) {
+                    maxPlayers = parseInt(capacity) || 4;
+                    await update(child(roomRef, 'settings'), { maxPlayers: maxPlayers });
+                }
+                
+                const currentCount = Object.keys(players).length;
+                if (currentCount >= maxPlayers) {
+                    alert(`Room ${roomCode} is full! (${currentCount}/${maxPlayers})`);
+                    return;
+                }
+
+                Network.connectToRoom(roomCode, maxPlayers);
+
+            } catch (e) {
+                console.error("Join Failed", e);
+                alert("Network Error: " + e.message);
+            }
+        },
+
+        connectToRoom: (roomCode, maxPlayers) => {
+            try {
+                Network.currentRoom = roomCode;
+                const roomPath = `hk_multiplayer/rooms/${roomCode}/players`;
+                Network.playerRef = ref(Network.db, `${roomPath}/${Network.playerId}`);
+                Network.roomRef = ref(Network.db, roomPath);
+
+                onDisconnect(Network.playerRef).remove();
+
+                window.addEventListener('beforeunload', () => {
+                      remove(Network.playerRef);
+                });
+
+                onValue(Network.roomRef, (snapshot) => {
+                    const data = snapshot.val() || {};
+                    delete data[Network.playerId];
+                    Network.remotePlayers = data;
+                    
+                    const count = Object.keys(data).length + 1;
+                    document.getElementById('player-count').innerText = `${count}/${maxPlayers} Online`;
+                    document.getElementById('net-dot').classList.add('connected');
+                    document.getElementById('server-id').innerText = `Room: ${roomCode}`;
+                    document.getElementById('server-id').style.display = 'block';
+                });
+
+                Network.connected = true;
+                console.log(`Joined Room: ${roomCode}`);
+                window.Game.startGame();
+
+            } catch (e) {
+                console.error("Connection Failed", e);
+            }
+        },
+
+        sendUpdate: (playerData) => {
+            if (!Network.connected || !Network.playerRef) return;
+            const now = Date.now();
+            if (now - Network.lastUpdate > 50) {
+                update(Network.playerRef, {
+                    x: Math.round(playerData.x),
+                    y: Math.round(playerData.y),
+                    f: playerData.facing, 
+                    s: playerData.animState, 
+                    a: playerData.attacking,
+                    hp: playerData.health,
+                    n: Network.playerName,
+                    ts: now,
+                    msg: playerData.chatMessage, // Sync Chat
+                    mt: playerData.chatTimer // Sync Chat Timer to expire bubbles remotely
+                });
+                Network.lastUpdate = now;
+            }
+        }
+    };
+
+    window.Network = Network;
+    Network.initApp();
+
+    document.getElementById('btn-join').addEventListener('click', () => {
+        const input = document.getElementById('room-code-input');
+        const capInput = document.getElementById('capacity-input');
+        const code = input.value.trim().toUpperCase();
+        
+        if(!code) {
+            alert("Please enter a room code to create or join.");
+            return;
         }
 
-        const toBase64 = file => new Promise((res, rej) => {
-            const r = new FileReader(); r.readAsDataURL(file);
-            r.onload = () => res(r.result); r.onerror = e => rej(e);
+        const capacity = parseInt(capInput.value) || 4;
+        Network.attemptJoin(code, capacity);
+    });
+
+    document.getElementById('btn-resume').addEventListener('click', () => window.Game.resumeGame());
+    document.getElementById('btn-save').addEventListener('click', () => window.Game.saveGame());
+    document.getElementById('btn-quit').addEventListener('click', () => location.reload());
+    
+    // Open Settings
+    document.getElementById('btn-settings').addEventListener('click', () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('settings-menu').classList.remove('hidden');
+    });
+
+    // Back from Settings
+    document.getElementById('btn-settings-back').addEventListener('click', () => {
+        document.getElementById('settings-menu').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    });
+
+</script>
+
+<script>
+/**
+ * HOLLOW KNIGHT CLONE - MAIN ENGINE
+ */
+
+const GRAVITY = 0.6;
+const TERMINAL_VELOCITY = 15;
+const FRICTION = 0.8;
+const MOVE_SPEED = 6;
+const JUMP_FORCE = 12;
+const DASH_SPEED = 14;
+const DASH_DURATION = 12;
+const ATTACK_DURATION = 15;
+const INVULNERABILITY_TIME = 60;
+
+const COLORS = {
+    bg: '#0f0f16',
+    platform: '#1a1a2e',
+    platformBorder: '#3d3d5c',
+    player: '#f0f0f0',
+    otherPlayer: '#d0d0f0',
+    cloak: '#2c3e50',
+    enemy: '#d35400',
+    boss: '#c0392b',
+    soul: '#ecf0f1',
+    hazard: '#7f8c8d'
+};
+
+// --- INPUT HANDLING ---
+const Input = {
+    keys: {},
+    mouse: { x: 0, y: 0, left: false, right: false },
+    active: true,
+    
+    init: () => {
+        window.addEventListener('keydown', e => {
+            if(Input.active) Input.keys[e.code] = true;
+            
+            // Toggle Chat
+            if(e.code === 'KeyT' && !document.getElementById('chat-container').style.display.includes('block')) {
+                Game.toggleChat(true);
+            }
+            // Send Chat
+            if(e.code === 'Enter' && document.getElementById('chat-container').style.display.includes('block')) {
+                Game.sendChat();
+            }
+        });
+        window.addEventListener('keyup', e => Input.keys[e.code] = false);
+        
+        window.addEventListener('mousedown', e => {
+            if (e.button === 0) Input.mouse.left = true;
+            if (e.button === 2) Input.mouse.right = true;
+        });
+        window.addEventListener('mouseup', e => {
+            if (e.button === 0) Input.mouse.left = false;
+            if (e.button === 2) Input.mouse.right = false;
+        });
+        window.addEventListener('contextmenu', e => e.preventDefault());
+    },
+    
+    reset: () => { Input.keys = {}; Input.mouse.left = false; Input.mouse.right = false; },
+    
+    left: () => Input.keys['KeyA'] || Input.keys['ArrowLeft'],
+    right: () => Input.keys['KeyD'] || Input.keys['ArrowRight'],
+    up: () => Input.keys['KeyW'] || Input.keys['ArrowUp'],
+    down: () => Input.keys['KeyS'] || Input.keys['ArrowDown'],
+    jump: () => Input.keys['Space'] || Input.keys['KeyZ'],
+    dash: () => Input.keys['ShiftLeft'] || Input.keys['KeyC'],
+    attack: () => Input.mouse.left || Input.keys['KeyX'],
+    heal: () => Input.mouse.right || Input.keys['KeyF'], 
+    pause: () => Input.keys['Escape']
+};
+
+// --- ENTITIES ---
+class Entity {
+    constructor(x, y, w, h) {
+        this.x = x; this.y = y;
+        this.w = w; this.h = h;
+        this.vx = 0; this.vy = 0;
+        this.markedForDeletion = false;
+    }
+    
+    getBounds() {
+        return { left: this.x, right: this.x + this.w, top: this.y, bottom: this.y + this.h };
+    }
+
+    checkCollision(other) {
+        const a = this.getBounds();
+        const b = other.getBounds();
+        return (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
+    }
+}
+
+class Particle extends Entity {
+    constructor(x, y, color, vx, vy, life) {
+        super(x, y, 4, 4);
+        this.color = color;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = life;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.2; 
+        this.life--;
+        if (this.life <= 0) this.markedForDeletion = true;
+    }
+    draw(ctx, camX, camY) {
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.life / 30;
+        ctx.fillRect(this.x - camX, this.y - camY, this.w, this.h);
+        ctx.globalAlpha = 1.0;
+    }
+}
+
+class Player extends Entity {
+    constructor(x, y) {
+        super(x, y, 24, 40);
+        this.startPos = {x, y};
+        this.health = 5;
+        this.maxHealth = 5;
+        this.soul = 0;
+        this.maxSoul = 100;
+        this.facing = 1; 
+        
+        this.grounded = false;
+        this.dashing = false;
+        this.dashTimer = 0;
+        this.dashCooldown = 0;
+        this.attacking = false;
+        this.attackTimer = 0;
+        this.attackCooldown = 0;
+        this.healing = false;
+        this.invulnerable = 0;
+        this.dead = false;
+        this.recoil = 0;
+        
+        this.animState = 0; 
+        this.animTimer = 0;
+        this.stretch = {x: 1, y: 1};
+        
+        // Chat
+        this.chatMessage = "";
+        this.chatTimer = 0;
+    }
+
+    respawn() {
+        this.x = this.startPos.x;
+        this.y = this.startPos.y;
+        this.health = this.maxHealth;
+        this.dead = false;
+        this.vx = 0;
+        this.vy = 0;
+        Game.camera.shake = 0;
+        Game.sceneTransition();
+    }
+
+    takeDamage(amount, srcX) {
+        if (this.invulnerable > 0 || this.dead) return;
+        this.health -= amount;
+        this.invulnerable = INVULNERABILITY_TIME;
+        this.recoil = 10;
+        this.vx = (this.x < srcX ? -1 : 1) * 8;
+        this.vy = -5;
+        Game.camera.shake = 10;
+        Game.updateHUD();
+
+        if (this.health <= 0) {
+            this.dead = true;
+            for(let i=0; i<20; i++) {
+                Game.particles.push(new Particle(this.x + this.w/2, this.y + this.h/2, 'black', (Math.random()-0.5)*10, (Math.random()-0.5)*10, 60));
+            }
+            setTimeout(() => this.respawn(), 1000);
+        }
+    }
+
+    addSoul(amount) {
+        this.soul = Math.min(this.soul + amount, this.maxSoul);
+        Game.updateHUD();
+    }
+
+    update(map, enemies) {
+        if (this.dead) return;
+        this.animTimer++;
+        if (this.chatTimer > 0) this.chatTimer--;
+        
+        this.stretch.x += (1 - this.stretch.x) * 0.1;
+        this.stretch.y += (1 - this.stretch.y) * 0.1;
+
+        if (Input.heal() && this.grounded && this.soul >= 33 && this.health < this.maxHealth) {
+            this.healing = true;
+            this.vx *= 0.8;
+            if (this.animTimer % 10 === 0) {
+                 Game.particles.push(new Particle(this.x + Math.random()*this.w, this.y + Math.random()*this.h, 'white', 0, -1, 20));
+            }
+            
+            if (!this.healTimer) this.healTimer = 60;
+            this.healTimer--;
+            if (this.healTimer <= 0) {
+                this.soul -= 33;
+                this.health++;
+                this.healTimer = 0;
+                this.healing = false;
+                Game.updateHUD();
+            }
+        } else {
+            this.healing = false;
+            this.healTimer = 0;
+        }
+
+        if (this.recoil > 0) {
+            this.recoil--;
+        } else if (!this.healing && Input.active) {
+            if (Input.left()) { 
+                this.vx -= 1; 
+                this.facing = -1; 
+                this.animState = 1;
+            }
+            else if (Input.right()) { 
+                this.vx += 1; 
+                this.facing = 1; 
+                this.animState = 1;
+            } else {
+                this.animState = 0;
+            }
+            
+            this.vx *= FRICTION;
+            if (Math.abs(this.vx) < 0.1) this.vx = 0;
+            if (this.vx > MOVE_SPEED) this.vx = MOVE_SPEED;
+            if (this.vx < -MOVE_SPEED) this.vx = -MOVE_SPEED;
+        }
+
+        if (Input.jump() && !this.lastJumpKey && Input.active) {
+            if (this.grounded) {
+                this.vy = -JUMP_FORCE;
+                this.stretch = {x: 0.7, y: 1.3};
+                this.grounded = false;
+                this.lastJumpKey = true;
+                this.animState = 2;
+                
+                for(let i=0; i<5; i++) {
+                    Game.particles.push(new Particle(this.x + this.w/2, this.y + this.h, 'white', (Math.random()-0.5)*4, Math.random()*-2, 20));
+                }
+            }
+        } else if (!Input.jump()) {
+            this.lastJumpKey = false;
+            if (this.vy < -3) this.vy *= 0.5;
+        }
+
+        if (Input.dash() && !this.dashing && this.dashCooldown <= 0 && !this.healing && Input.active) {
+            this.dashing = true;
+            this.dashTimer = DASH_DURATION;
+            this.dashCooldown = 40; 
+            this.vx = this.facing * DASH_SPEED;
+            this.vy = 0;
+            Game.camera.shake = 5;
+        }
+
+        if (Input.attack() && !this.attacking && this.attackCooldown <= 0 && !this.healing && Input.active) {
+            this.attacking = true;
+            this.attackTimer = ATTACK_DURATION;
+            this.attackCooldown = 25;
+            
+            const reach = 40;
+            const hitX = this.facing === 1 ? this.x + this.w : this.x - reach;
+            const hitY = this.y + 10;
+            
+            enemies.forEach(e => {
+                if (!e.dead && hitX < e.x + e.w && hitX + reach > e.x && hitY < e.y + e.h && hitY + 20 > e.y) {
+                    e.takeDamage(1);
+                    this.addSoul(15);
+                    this.recoil = 5;
+                    if(this.grounded) this.vx = -this.facing * 5;
+                }
+            });
+        }
+
+        if (this.dashing) {
+            this.dashTimer--;
+            this.vy = 0;
+            if (this.dashTimer <= 0) {
+                this.dashing = false;
+                this.vx *= 0.2;
+            }
+            if (this.dashTimer % 3 === 0) {
+                Game.particles.push(new Particle(this.x, this.y, 'rgba(255,255,255,0.5)', 0, 0, 10));
+            }
+        } else {
+            this.vy += GRAVITY;
+            if (this.vy > TERMINAL_VELOCITY) this.vy = TERMINAL_VELOCITY;
+        }
+
+        if (this.dashCooldown > 0) this.dashCooldown--;
+        if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.invulnerable > 0) this.invulnerable--;
+        if (this.attacking) this.attackTimer--;
+        if (this.attackTimer <= 0) this.attacking = false;
+
+        this.x += this.vx;
+        this.checkCollisions(map, 'x');
+        this.y += this.vy;
+        this.checkCollisions(map, 'y');
+        
+        if (this.y > 4000) this.takeDamage(1, this.x + 100);
+    }
+
+    checkCollisions(map, axis) {
+        const bounds = this.getBounds();
+        this.grounded = false;
+
+        for (const rect of map) {
+            if (this.x < rect.x + rect.w && this.x + this.w > rect.x &&
+                this.y < rect.y + rect.h && this.y + this.h > rect.y) {
+                
+                if (axis === 'x') {
+                    if (this.vx > 0) this.x = rect.x - this.w;
+                    else if (this.vx < 0) this.x = rect.x + rect.w;
+                    this.vx = 0;
+                } else {
+                    if (this.vy > 0) { 
+                        this.y = rect.y - this.h;
+                        this.grounded = true;
+                        this.vy = 0;
+                    } else if (this.vy < 0) { 
+                        this.y = rect.y + rect.h;
+                        this.vy = 0;
+                    }
+                }
+            }
+        }
+        
+        if (axis === 'y' && !this.grounded && this.vy >= 0) {
+             for (const rect of map) {
+                if (this.x < rect.x + rect.w - 2 && this.x + this.w > rect.x + 2 && 
+                    Math.abs((this.y + this.h) - rect.y) < 2) {
+                    this.grounded = true;
+                    this.y = rect.y - this.h;
+                    this.vy = 0;
+                }
+            }
+        }
+    }
+
+    draw(ctx, camX, camY) {
+        if (this.invulnerable > 0 && Math.floor(Date.now() / 50) % 2 === 0) return; 
+        
+        drawVessel(ctx, this.x - camX, this.y - camY, this.w, this.h, this.facing, this.stretch.x, this.stretch.y, this.attacking, this.healing, false, this.chatTimer > 0 ? this.chatMessage : null);
+    }
+}
+
+// Draw Vessel Function (Handles Skins and Chat)
+function drawVessel(ctx, x, y, w, h, facing, scaleX, scaleY, attacking, healing, isRemote, chatMsg) {
+    const cx = x + w/2;
+    const cy = y + h; 
+
+    ctx.save();
+    
+    // Chat Bubble
+    if (chatMsg) {
+        ctx.font = '12px sans-serif';
+        const metrics = ctx.measureText(chatMsg);
+        const bw = Math.max(metrics.width + 10, 20);
+        const bh = 24;
+        const bx = cx - bw/2;
+        const by = y - bh - 10;
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.roundRect(bx, by, bw, bh, 5);
+        ctx.fill();
+        
+        // Triangle
+        ctx.beginPath();
+        ctx.moveTo(cx, by + bh);
+        ctx.lineTo(cx - 5, by + bh + 5);
+        ctx.lineTo(cx + 5, by + bh + 5);
+        ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.fillText(chatMsg, cx, by + 16);
+    }
+
+    ctx.translate(cx, cy);
+    ctx.scale(facing * scaleX, scaleY);
+    ctx.translate(-cx, -cy);
+
+    // Cloak
+    ctx.fillStyle = COLORS.cloak;
+    ctx.beginPath();
+    ctx.moveTo(cx, y + 15);
+    ctx.lineTo(cx - 12, y + h);
+    ctx.lineTo(cx + 12, y + h);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = isRemote ? COLORS.otherPlayer : COLORS.player;
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, y);
+    ctx.lineTo(cx - 8, y - 12);
+    ctx.lineTo(cx - 4, y);
+    ctx.moveTo(cx + 8, y);
+    ctx.lineTo(cx + 8, y - 12);
+    ctx.lineTo(cx + 4, y);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx, y + 10, 11, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.ellipse(cx - 4, y + 10, 3, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 4, y + 10, 3, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (attacking) {
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx + 10, y + 20, 30, -Math.PI/2, Math.PI/2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.5;
+        ctx.lineWidth = 10;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+    }
+
+    if (healing) {
+        ctx.fillStyle = 'white';
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.arc(cx, y + h/2, 25 + Math.random()*5, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+class Enemy extends Entity {
+    constructor(x, y) {
+        super(x, y, 30, 30);
+        this.speed = 2;
+        this.dir = 1;
+        this.health = 3;
+        this.dead = false;
+    }
+    takeDamage(amount) {
+        this.health -= amount;
+        if (this.health <= 0) this.dead = true;
+    }
+    update(map, player) {
+        if (this.dead) return;
+        this.x += this.speed * this.dir;
+        
+        let hitWall = false;
+        let aboutToFall = true;
+        
+        for (const rect of map) {
+            if (this.x < rect.x + rect.w && this.x + this.w > rect.x && 
+                this.y < rect.y + rect.h && this.y + this.h > rect.y) {
+                hitWall = true;
+            }
+            const checkX = this.dir === 1 ? this.x + this.w : this.x;
+            if (checkX >= rect.x && checkX <= rect.x + rect.w && 
+                this.y + this.h === rect.y) {
+                aboutToFall = false;
+            }
+        }
+        
+        if (hitWall || aboutToFall) {
+            this.dir *= -1;
+            this.x += this.speed * this.dir * 2;
+        }
+
+        if (this.checkCollision(player)) {
+            player.takeDamage(1, this.x);
+        }
+    }
+    draw(ctx, camX, camY) {
+        if (this.dead) return;
+        ctx.fillStyle = COLORS.enemy;
+        ctx.fillRect(this.x - camX, this.y - camY, this.w, this.h);
+        ctx.fillStyle = 'orange';
+        ctx.fillRect(this.x - camX + (this.dir===1?20:5), this.y - camY + 5, 5, 5);
+    }
+}
+
+// --- GAME CONTROLLER ---
+const Game = {
+    canvas: document.getElementById('gameCanvas'),
+    ctx: document.getElementById('gameCanvas').getContext('2d'),
+    player: null,
+    enemies: [],
+    particles: [],
+    map: [],
+    camera: {x: 0, y: 0, shake: 0},
+    running: false,
+    
+    init: () => {
+        Game.resize();
+        window.addEventListener('resize', Game.resize);
+        Input.init();
+        
+        // --- MASSIVE MAP GENERATION ---
+        Game.map = [];
+        // Ground Floor
+        Game.map.push({x: -1000, y: 500, w: 3000, h: 500});
+        
+        // Starting Steps
+        Game.map.push({x: 300, y: 400, w: 200, h: 20});
+        Game.map.push({x: 600, y: 300, w: 200, h: 20});
+        Game.map.push({x: 100, y: 250, w: 100, h: 20});
+        
+        // Left Tower
+        Game.map.push({x: -800, y: -2000, w: 100, h: 2500});
+        for(let i=0; i<10; i++) {
+            Game.map.push({x: -700 + (i%2)*150, y: 400 - i*120, w: 120, h: 20});
+        }
+        
+        // Right Tower
+        Game.map.push({x: 1800, y: -2000, w: 100, h: 2500});
+         for(let i=0; i<10; i++) {
+            Game.map.push({x: 1550 - (i%2)*150, y: 400 - i*120, w: 120, h: 20});
+        }
+        
+        // Upper Bridge
+        Game.map.push({x: -700, y: -500, w: 2500, h: 50});
+        
+        // Floating Islands
+        Game.map.push({x: 200, y: -700, w: 300, h: 40});
+        Game.map.push({x: 800, y: -800, w: 200, h: 40});
+        Game.map.push({x: -200, y: -900, w: 150, h: 30});
+
+        Game.player = new Player(100, 300);
+        Game.enemies.push(new Enemy(500, 470));
+        Game.enemies.push(new Enemy(700, 270));
+        Game.enemies.push(new Enemy(-300, 470));
+        Game.enemies.push(new Enemy(0, -530));
+    },
+    
+    startGame: () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('hud').classList.remove('hidden');
+        Game.running = true;
+        requestAnimationFrame(Game.loop);
+    },
+    
+    resumeGame: () => {
+        document.getElementById('pause-menu').classList.add('hidden');
+        Game.running = true;
+        requestAnimationFrame(Game.loop);
+    },
+    
+    saveGame: () => {
+        const notif = document.getElementById('notification');
+        notif.style.opacity = 1;
+        setTimeout(() => notif.style.opacity = 0, 2000);
+    },
+    
+    toggleChat: (show) => {
+        const chat = document.getElementById('chat-container');
+        const input = document.getElementById('chat-input');
+        
+        if (show) {
+            chat.style.display = 'block';
+            input.value = '';
+            input.focus();
+            Input.active = false;
+            Input.reset();
+        } else {
+            chat.style.display = 'none';
+            Input.active = true;
+            Game.canvas.focus();
+        }
+    },
+    
+    sendChat: () => {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim().substring(0, 30);
+        if (msg) {
+            Game.player.chatMessage = msg;
+            Game.player.chatTimer = 300; // 5 seconds
+        }
+        Game.toggleChat(false);
+    },
+    
+    resize: () => {
+        Game.canvas.width = window.innerWidth;
+        Game.canvas.height = window.innerHeight;
+    },
+    
+    sceneTransition: () => {
+        const curtain = document.createElement('div');
+        curtain.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:black;transition:opacity 0.5s;z-index:999;`;
+        document.body.appendChild(curtain);
+        setTimeout(() => curtain.style.opacity = 0, 100);
+        setTimeout(() => curtain.remove(), 600);
+    },
+    
+    updateHUD: () => {
+        const hpBar = document.getElementById('health-bar');
+        hpBar.innerHTML = '';
+        for(let i=0; i<Game.player.maxHealth; i++) {
+            const d = document.createElement('div');
+            d.className = 'mask' + (i >= Game.player.health ? ' broken' : '');
+            hpBar.appendChild(d);
+        }
+        const soulPct = (Game.player.soul / Game.player.maxSoul) * 100;
+        document.getElementById('soul-meter').style.height = soulPct + '%';
+    },
+
+    drawBackground: (ctx, cx, cy) => {
+        // Simple Parallax
+        const bgY = cy * 0.2;
+        const bgX = cx * 0.2;
+        
+        // Deep Background
+        ctx.fillStyle = '#050510';
+        ctx.fillRect(0, 0, Game.canvas.width, Game.canvas.height);
+
+        // Pillars
+        ctx.fillStyle = '#0a0a1a';
+        for(let i=-2; i<5; i++) {
+            ctx.fillRect((i*400) - (bgX%400), 0, 50, Game.canvas.height);
+        }
+
+        // Midground (Silhouettes)
+        ctx.fillStyle = '#111122';
+        for(let i=-5; i<20; i++) {
+             ctx.beginPath();
+             ctx.moveTo(i*200 - (cx*0.5), 1000 - (cy*0.5));
+             ctx.lineTo(i*200 + 100 - (cx*0.5), 200 - (cy*0.5)); // Spikes/Mts
+             ctx.lineTo(i*200 + 200 - (cx*0.5), 1000 - (cy*0.5));
+             ctx.fill();
+        }
+    },
+
+    loop: () => {
+        if (!Game.running) return;
+        if (Input.pause()) {
+            Game.running = false;
+            document.getElementById('pause-menu').classList.remove('hidden');
+            return;
+        }
+
+        const ctx = Game.ctx;
+        
+        Game.player.update(Game.map, Game.enemies);
+        Game.enemies.forEach(e => e.update(Game.map, Game.player));
+        Game.particles.forEach((p, i) => {
+            p.update();
+            if(p.markedForDeletion) Game.particles.splice(i, 1);
         });
 
-        function checkAdminDisplay() {
-            if(currentUser && currentUser.email === ADMIN_EMAIL) {
-                document.getElementById('btnAdminNav').style.display = 'block';
-                document.getElementById('adminBadge').style.display = 'inline-block';
-            }
+        if (window.Network && window.Network.connected) {
+            window.Network.sendUpdate(Game.player);
         }
 
-        function checkAdminPass() {
-            const pass = prompt("SENHA DO MODO DEUS:");
-            if(pass === ADMIN_PASS) openModal('adminModal');
-            else alert("ACESSO NEGADO.");
+        let targetCamX = Game.player.x + Game.player.w/2 - Game.canvas.width/2;
+        let targetCamY = Game.player.y + Game.player.h/2 - Game.canvas.height/2;
+        
+        Game.camera.x += (targetCamX - Game.camera.x) * 0.1;
+        Game.camera.y += (targetCamY - Game.camera.y) * 0.1;
+        
+        let shakeX = 0, shakeY = 0;
+        if (Game.camera.shake > 0) {
+            shakeX = (Math.random() - 0.5) * Game.camera.shake;
+            shakeY = (Math.random() - 0.5) * Game.camera.shake;
+            Game.camera.shake *= 0.9;
+            if(Game.camera.shake < 0.5) Game.camera.shake = 0;
         }
 
-        async function adminUpdate(type) {
-            const id = document.getElementById('adminGameId').value;
-            if(!id) return alert("COLE O ID!");
-            try {
-                let data = {};
-                if(type === 'title') data.title = document.getElementById('adminNewTitle').value;
-                if(type === 'likes') data.likes = parseInt(document.getElementById('adminLikes').value);
-                if(type === 'views') data.views = parseInt(document.getElementById('adminViews').value);
-                await db.collection("games").doc(id).update(data);
-                alert("SUCESSO!");
-                closeModals();
-            } catch(e) { alert("ERRO: "+e.message); }
+        const cx = Game.camera.x + shakeX;
+        const cy = Game.camera.y + shakeY;
+
+        // Draw World
+        Game.drawBackground(ctx, cx, cy);
+
+        ctx.fillStyle = COLORS.platform;
+        ctx.strokeStyle = COLORS.platformBorder;
+        ctx.lineWidth = 2;
+        for (const rect of Game.map) {
+            ctx.fillRect(rect.x - cx, rect.y - cy, rect.w, rect.h);
+            ctx.strokeRect(rect.x - cx, rect.y - cy, rect.w, rect.h);
         }
 
-        async function handleAuth() {
-            const email = document.getElementById('emailIn').value.trim().toLowerCase();
-            const nick = document.getElementById('nickIn').value.trim();
-            const picFile = document.getElementById('picUpload').files[0];
+        // Remote Players
+        if (window.Network && window.Network.remotePlayers) {
+            Object.keys(window.Network.remotePlayers).forEach(key => {
+                const p = window.Network.remotePlayers[key];
+                // Check if message is expired
+                const msg = (p.mt && p.mt > 0) ? p.msg : null;
+                
+                // FIXED: Use p.a (attacking boolean) instead of p.s
+                drawVessel(ctx, p.x - cx, p.y - cy, 24, 40, p.f || 1, 1, 1, p.a, false, true, msg);
 
-            if(!email || !nick) return alert("PREENCHA TUDO!");
-
-            let avatar = currentUser?.pic || "https://api.dicebear.com/7.x/identicon/svg?seed="+nick;
-            if(picFile) avatar = await toBase64(picFile);
-
-            const userObj = { email, nick, pic: avatar };
-            
-            // Salva no banco
-            await db.collection("users").doc(email).set(userObj, { merge: true });
-            
-            // Atualiza local e UI
-            currentUser = userObj;
-            localStorage.setItem('gh_sess', JSON.stringify(currentUser));
-            
-            updateNavUser();
-            checkAdminDisplay();
-            closeModals();
-            alert("PERFIL ATUALIZADO!");
-        }
-
-        function updateNavUser() {
-            if(!currentUser) return;
-            document.getElementById('navUser').innerText = currentUser.nick.toUpperCase();
-            document.getElementById('navAvatar').src = currentUser.pic;
-            // Preenche campos do modal
-            document.getElementById('emailIn').value = currentUser.email;
-            document.getElementById('nickIn').value = currentUser.nick;
-        }
-
-        async function openGame(id) {
-            currentGameId = id;
-            const doc = await db.collection("games").doc(id).get();
-            const g = doc.data();
-            
-            db.collection("games").doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
-
-            document.getElementById('pgTitle').innerText = g.title;
-            document.getElementById('pgId').innerText = "ID: " + id;
-            document.getElementById('gameIframe').src = g.url;
-            document.getElementById('likeCount').innerText = g.likes || 0;
-            document.getElementById('viewCount').innerText = (g.views || 0) + 1;
-            document.getElementById('descText').innerText = g.desc || "";
-            document.getElementById('gamePage').style.display = 'flex';
-
-            const heart = document.getElementById('heartIcon');
-            if(currentUser && g.likedBy?.includes(currentUser.email)) {
-                heart.style.fill = "var(--danger)";
-                heart.style.stroke = "var(--danger)";
-            } else {
-                heart.style.fill = "transparent";
-                heart.style.stroke = "currentColor";
-            }
-
-            document.getElementById('likeBtn').onclick = async () => {
-                if(!currentUser) return alert("LOGUE PARA CURTIR!");
-                const fresh = await db.collection("games").doc(id).get();
-                if(fresh.data().likedBy?.includes(currentUser.email)) return;
-
-                await db.collection("games").doc(id).update({
-                    likes: firebase.firestore.FieldValue.increment(1),
-                    likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.email)
-                });
-                document.getElementById('likeCount').innerText = (g.likes || 0) + 1;
-                heart.style.fill = "var(--danger)";
-            };
-
-            const del = document.getElementById('btnDelete');
-            del.style.display = (currentUser && (currentUser.email === g.author || currentUser.email === ADMIN_EMAIL)) ? 'block' : 'none';
-            del.onclick = async () => { if(confirm("DELETAR?")) { await db.collection("games").doc(id).delete(); closeGame(); }};
-        }
-
-        function render(list) {
-            const m = document.getElementById('mainGrid');
-            const h = document.getElementById('highGrid');
-            m.innerHTML = ''; h.innerHTML = '';
-            list.forEach(g => m.innerHTML += createCard(g));
-            [...list].sort((a,b) => (b.likes||0)-(a.likes||0)).slice(0,4).forEach(g => h.innerHTML += createCard(g));
-            lucide.createIcons();
-        }
-
-        function createCard(g) {
-            return `<div class="game-card" onclick="openGame('${g.id}')">
-                <div class="view-badge"><i data-lucide="eye" style="width:10px;"></i> ${g.views || 0}</div>
-                <img src="${g.pic || 'https://via.placeholder.com/300x150/0f172a/ffffff?text=GAME'}" class="game-thumb">
-                <div class="game-info">
-                    <b style="font-size:0.85rem;">${g.title.toUpperCase()}</b><br>
-                    <small style="color:#64748b;">${g.likes||0} LIKES</small>
-                </div>
-            </div>`;
-        }
-
-        async function saveGame() {
-            if(!currentUser) return alert("LOGUE PRIMEIRO!");
-            const title = document.getElementById('postTitle').value;
-            const pic = document.getElementById('postPic').value;
-            const desc = document.getElementById('postDesc').value;
-            let url = "";
-
-            if(postMethod === 'link') url = document.getElementById('postUrl').value;
-            else {
-                const f = document.getElementById('gameUpload').files[0];
-                if(f) url = await toBase64(f);
-            }
-
-            if(!title || !url) return alert("DADOS FALTANDO!");
-
-            await db.collection("games").add({
-                title, pic, url, desc, likes: 0, views: 0, likedBy: [],
-                author: currentUser.email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                ctx.fillStyle = '#aaa';
+                ctx.font = '10px Cinzel';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.n || 'Vessel', p.x - cx + 12, p.y - cy - 10);
             });
-            closeModals();
-            alert("PUBLICADO!");
         }
 
-        async function generateCoverAI() {
-            const p = document.getElementById('aiPrompt').value;
-            if(!p) return alert("DIGITE A DESCRIÇÃO!");
-            const url = `https://pollinations.ai/p/${encodeURIComponent(p)}?width=600&height=350&nologo=true&seed=${Math.random()}`;
-            document.getElementById('aiPreview').src = url;
-            document.getElementById('aiPreview').style.display = "block";
-            document.getElementById('postPic').value = url;
-        }
+        Game.enemies.forEach(e => e.draw(ctx, cx, cy));
 
-        function logout() { localStorage.removeItem('gh_sess'); location.reload(); }
-        function openModal(id) { document.getElementById('modalOverlay').style.display='block'; document.getElementById(id).style.display='block'; }
-        function closeModals() { document.getElementById('modalOverlay').style.display='none'; document.querySelectorAll('.modal-box').forEach(m=>m.style.display='none'); }
-        function closeGame() { document.getElementById('gamePage').style.display='none'; document.getElementById('gameIframe').src=''; }
-        function copyId() { navigator.clipboard.writeText(currentGameId); alert("ID COPIADO!"); }
-        function toggleFull() { document.getElementById("gameIframe").requestFullscreen(); }
-        function switchTab(m) {
-            postMethod = m;
-            document.getElementById('tabLink').classList.toggle('active', m === 'link');
-            document.getElementById('tabUpload').classList.toggle('active', m === 'upload');
-            document.getElementById('methodLink').style.display = m === 'link' ? 'block' : 'none';
-            document.getElementById('methodUpload').style.display = m === 'upload' ? 'block' : 'none';
-        }
-        function previewFile(i, p) {
-            const f = document.getElementById(i).files[0];
-            const pr = document.getElementById(p);
-            if(f) { const r = new FileReader(); r.onload=e=>{pr.src=e.target.result; pr.style.display='block';}; r.readAsDataURL(f); }
-        }
+        Game.player.draw(ctx, cx, cy);
 
-        init();
-    </script>
+        Game.particles.forEach(p => p.draw(ctx, cx, cy));
+
+        const grad = ctx.createRadialGradient(Game.canvas.width/2, Game.canvas.height/2, 200, Game.canvas.width/2, Game.canvas.height/2, 800);
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0,0, Game.canvas.width, Game.canvas.height);
+
+        requestAnimationFrame(Game.loop);
+    }
+};
+
+window.Game = Game;
+window.onload = Game.init;
+
+</script>
 </body>
 </html>
