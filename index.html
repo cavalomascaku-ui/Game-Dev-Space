@@ -14,48 +14,76 @@
 
     <style>
         :root {
-            --bg: #0b0e14; --accent: #8b5cf6; --card-bg: #161b22;
-            --text: #ffffff; --gold: #fbbf24; --red: #ff4757;
+            --bg: #0b0e14;
+            --accent: #8b5cf6;
+            --card-bg: #161b22;
+            --text: #ffffff;
+            --gold: #fbbf24;
+            --red: #ff4757;
         }
 
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+        body { 
+            margin: 0; font-family: 'Inter', sans-serif; 
+            background: var(--bg); color: var(--text);
+        }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px; background: #0d1117; border-bottom: 1px solid #30363d;
+            padding: 15px 30px; background: #0d1117;
+            border-bottom: 1px solid #30363d;
             position: sticky; top: 0; z-index: 100;
         }
 
         .logo { font-weight: 900; font-size: 1.5rem; color: var(--accent); letter-spacing: -1px; }
         .nav-btns { display: flex; gap: 15px; align-items: center; }
 
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn {
+            padding: 10px 20px; border-radius: 8px; border: none;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+            font-size: 14px; display: flex; align-items: center; gap: 8px;
+        }
+
         .btn-post { background: var(--accent); color: white; }
         .btn-admin { background: var(--gold); color: black; display: none; }
         
-        /* Botão de Like no Player */
+        /* Estilo do botão de Like */
         .btn-like { background: #21262d; color: white; border: 1px solid #30363d; }
         .btn-like.active { color: var(--red); border-color: var(--red); }
 
-        .profile-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 15px; border-radius: 30px; background: #21262d; border: 1px solid #30363d; }
+        .profile-trigger {
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            padding: 5px 15px; border-radius: 30px; background: #21262d;
+            border: 1px solid #30363d;
+        }
         .avatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); }
 
         .main-content { padding: 40px; max-width: 1400px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
 
-        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #30363d; transition: 0.3s; cursor: pointer; }
+        .card {
+            background: var(--card-bg); border-radius: 12px; overflow: hidden;
+            border: 1px solid #30363d; transition: 0.3s; cursor: pointer;
+        }
         .card:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .card-img { width: 100%; height: 160px; object-fit: cover; background: #000; }
+        .card-img { width: 100%; height: 160px; object-fit: cover; }
         .card-body { padding: 15px; }
         .card-title { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; }
-        .card-meta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; opacity: 0.5; }
+        .card-meta { display: flex; gap: 10px; margin-top: 10px; font-size: 12px; opacity: 0.5; }
 
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 999; backdrop-filter: blur(5px); }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #161b22; padding: 30px; border-radius: 15px; z-index: 1000; width: 90%; max-width: 400px; display: none; border: 1px solid var(--accent); }
+        .modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #161b22; padding: 30px; border-radius: 15px; z-index: 1000;
+            width: 90%; max-width: 400px; display: none; border: 1px solid var(--accent);
+        }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
 
         .player-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; }
-        .player-header { padding: 10px 25px; background: #161b22; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+        .player-header { padding: 10px 25px; background: #161b22; display: flex; justify-content: space-between; align-items: center; }
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
@@ -74,12 +102,10 @@
     </header>
 
     <div class="main-content">
-        <h2 style="font-size: 14px; opacity: 0.4; letter-spacing: 2px; margin-bottom: 20px;">MAIS RELEVANTES</h2>
         <div class="grid" id="gameGrid"></div>
     </div>
 
     <div class="overlay" id="blur" onclick="hideModals()"></div>
-
     <div class="modal" id="loginModal">
         <h2>PERFIL</h2>
         <input type="email" id="inEmail" placeholder="E-mail">
@@ -92,17 +118,17 @@
         <h2>NOVO JOGO</h2>
         <input type="text" id="pTitle" placeholder="Título do Jogo">
         <input type="text" id="pUrl" placeholder="Link do Jogo">
-        <input type="text" id="pImg" placeholder="Link da Capa">
+        <input type="text" id="pImg" placeholder="Link da Capa (Imagem)">
         <button class="btn btn-post" style="width:100%" onclick="sendGame()">PUBLICAR</button>
     </div>
 
     <div class="player-screen" id="player">
         <div class="player-header">
-            <button class="btn" style="background:#30363d; color:white" onclick="closeGame()">VOLTAR</button>
+            <button class="btn" style="background:#30363d; color:white" onclick="closeGame()">FECHAR</button>
             <div style="display:flex; align-items:center; gap:20px;">
                 <span id="gameTitle" style="font-weight:900"></span>
-                <button class="btn btn-like" id="likeBtn" onclick="handleLike()">
-                    <i data-lucide="heart"></i> <span id="likeCount">0</span>
+                <button class="btn btn-like" id="likeBtn" onclick="toggleLike()">
+                    <i data-lucide="heart"></i> <span id="likeCountDisplay">0</span>
                 </button>
             </div>
             <div id="gameIdDisplay" style="font-size:10px; opacity:0.3; cursor:pointer" onclick="copyId()">ID</div>
@@ -122,32 +148,30 @@
 
         const db = firebase.firestore();
         let user = JSON.parse(localStorage.getItem('gh_user')) || null;
-        let activeId = null;
+        let currentId = null;
 
         function updateUI() {
             if(user) {
                 document.getElementById('userName').innerText = user.nick.toUpperCase();
                 document.getElementById('userImg').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.nick}`;
                 document.getElementById('userImg').style.display = 'block';
-                if(user.email === CONFIG.ADMIN_EMAIL) document.getElementById('admBtn').style.display = 'flex';
+                if(user.email === CONFIG.ADMIN_EMAIL) document.getElementById('admBtn').style.display = 'block';
             }
         }
 
         function login() {
-            const email = document.getElementById('inEmail').value.trim().toLowerCase();
+            const email = document.getElementById('inEmail').value;
             const nick = document.getElementById('inNick').value;
             if(email && nick) {
                 user = { email, nick };
                 localStorage.setItem('gh_user', JSON.stringify(user));
                 updateUI();
                 hideModals();
-                location.reload();
             }
         }
 
-        // ORDENAÇÃO POR VIEWS (RELEVÂNCIA)
         function loadGames() {
-            db.collection("games").orderBy("views", "desc").onSnapshot(snap => {
+            db.collection("games").orderBy("createdAt", "desc").onSnapshot(snap => {
                 const grid = document.getElementById('gameGrid');
                 grid.innerHTML = '';
                 snap.forEach(doc => {
@@ -158,8 +182,8 @@
                             <div class="card-body">
                                 <div class="card-title">${g.title}</div>
                                 <div class="card-meta">
-                                    <span>❤️ ${g.likes || 0} LIKES</span>
-                                    <span>👁️ ${g.views || 0} VIEWS</span>
+                                    <span>${g.likes || 0} LIKES</span>
+                                    <span>${g.views || 0} VIEWS</span>
                                 </div>
                             </div>
                         </div>`;
@@ -169,40 +193,41 @@
         }
 
         async function openGame(id, url, title, likes) {
-            activeId = id;
+            currentId = id;
             document.getElementById('gameTitle').innerText = title;
-            document.getElementById('likeCount').innerText = likes;
+            document.getElementById('likeCountDisplay').innerText = likes;
             document.getElementById('gameIdDisplay').innerText = "ID: " + id;
             document.getElementById('gameFrame').src = url;
             document.getElementById('player').style.display = 'flex';
             
-            // Incrementa View
             db.collection("games").doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
-            checkLikeStatus(id);
+            checkIfLiked(id);
         }
 
-        // SISTEMA DE LIKE REAL
-        async function handleLike() {
-            if(!user) return alert("Logue para dar like!");
-            const likeRef = db.collection("likes").doc(`${user.email}_${activeId}`);
-            const gameRef = db.collection("games").doc(activeId);
+        // LÓGICA DO SISTEMA DE LIKE
+        async function toggleLike() {
+            if(!user) return alert("Faz login para curtir!");
+            
+            const likeRef = db.collection("likes").doc(`${user.email}_${currentId}`);
+            const gameRef = db.collection("games").doc(currentId);
             const doc = await likeRef.get();
 
-            if(doc.exists) {
+            if (doc.exists) {
                 await likeRef.delete();
                 await gameRef.update({ likes: firebase.firestore.FieldValue.increment(-1) });
                 document.getElementById('likeBtn').classList.remove('active');
             } else {
-                await likeRef.set({ u: user.email, g: activeId });
+                await likeRef.set({ u: user.email, g: currentId });
                 await gameRef.update({ likes: firebase.firestore.FieldValue.increment(1) });
                 document.getElementById('likeBtn').classList.add('active');
             }
             
+            // Atualiza o número na tela imediatamente
             const updated = await gameRef.get();
-            document.getElementById('likeCount').innerText = updated.data().likes;
+            document.getElementById('likeCountDisplay').innerText = updated.data().likes || 0;
         }
 
-        async function checkLikeStatus(id) {
+        async function checkIfLiked(id) {
             if(!user) return;
             const doc = await db.collection("likes").doc(`${user.email}_${id}`).get();
             if(doc.exists) document.getElementById('likeBtn').classList.add('active');
@@ -214,7 +239,6 @@
             const title = document.getElementById('pTitle').value;
             const url = document.getElementById('pUrl').value;
             const thumb = document.getElementById('pImg').value;
-            
             db.collection("games").add({
                 title, url, thumb,
                 likes: 0, views: 0,
@@ -225,7 +249,7 @@
         function openAdmin() {
             const p = prompt("Senha Admin:");
             if(p === CONFIG.ADMIN_PASS) {
-                const id = prompt("ID do Jogo:");
+                const id = prompt("ID do Jogo para apagar/editar:");
                 if(id) {
                     const acao = confirm("OK para APAGAR, Cancelar para EDITAR LIKES");
                     if(acao) db.collection("games").doc(id).delete();
@@ -241,7 +265,7 @@
         function hideModals() { document.getElementById('blur').style.display='none'; document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
         function closeGame() { document.getElementById('player').style.display='none'; document.getElementById('gameFrame').src=''; }
         function logout() { localStorage.removeItem('gh_user'); location.reload(); }
-        function copyId() { navigator.clipboard.writeText(activeId); alert("ID Copiado!"); }
+        function copyId() { navigator.clipboard.writeText(currentId); alert("ID Copiado!"); }
 
         updateUI();
         loadGames();
