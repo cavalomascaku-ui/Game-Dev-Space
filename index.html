@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAMEHUB | Cloud Edition</title>
+    <title>GAMEHUB | Cloud</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -15,325 +14,226 @@
 
     <style>
         :root {
-            --bg: #05080f;
+            --bg: #0b0e14;
             --accent: #8b5cf6;
-            --accent-glow: rgba(139, 92, 246, 0.4);
-            --card-bg: rgba(15, 23, 42, 0.8);
-            --text: #f8fafc;
+            --card-bg: #161b22;
+            --text: #ffffff;
             --gold: #fbbf24;
-            --danger: #ef4444;
         }
 
         body { 
             margin: 0; font-family: 'Inter', sans-serif; 
-            background: var(--bg); color: var(--text); 
-            overflow-x: hidden; min-height: 100vh;
+            background: var(--bg); color: var(--text);
         }
 
-        /* Header Estilo Original */
+        /* HEADER ORIGINAL */
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 25px; background: rgba(7, 11, 20, 0.95);
-            backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 30px; background: #0d1117;
+            border-bottom: 1px solid #30363d;
+            position: sticky; top: 0; z-index: 100;
         }
 
-        .logo { font-weight: 900; color: var(--accent); font-size: 1.6rem; letter-spacing: -1px; }
+        .logo { font-weight: 900; font-size: 1.5rem; color: var(--accent); letter-spacing: -1px; }
 
-        .nav-right { display: flex; gap: 12px; align-items: center; }
+        .nav-btns { display: flex; gap: 15px; align-items: center; }
 
-        .btn-main { 
-            background: var(--accent); color: white; border: none; padding: 10px 20px; 
-            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px;
-            transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        .btn {
+            padding: 10px 20px; border-radius: 8px; border: none;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+            font-size: 14px;
         }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--accent-glow); }
 
-        .admin-btn { background: var(--gold); color: #000; display: none; }
+        .btn-post { background: var(--accent); color: white; }
+        .btn-admin { background: var(--gold); color: black; display: none; }
 
-        .user-profile { 
+        .profile-trigger {
             display: flex; align-items: center; gap: 10px; cursor: pointer;
-            padding: 6px 15px; border-radius: 10px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
+            padding: 5px 15px; border-radius: 30px; background: #21262d;
+            border: 1px solid #30363d;
         }
-        .user-profile:hover { background: rgba(255,255,255,0.1); }
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        .avatar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); }
 
-        /* Grid de Jogos */
-        .container { max-width: 1300px; margin: 0 auto; padding: 30px; }
-        
-        .game-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 30px; 
+        /* GRID DE JOGOS ORIGINAL */
+        .main-content { padding: 40px; max-width: 1400px; margin: 0 auto; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
         }
 
-        .game-card { 
-            background: var(--card-bg); border-radius: 16px; overflow: hidden; 
-            border: 1px solid rgba(255,255,255,0.05); cursor: pointer; 
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
+        .card {
+            background: var(--card-bg); border-radius: 12px; overflow: hidden;
+            border: 1px solid #30363d; transition: 0.3s; cursor: pointer;
         }
-        .game-card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
         
-        .game-thumb { width: 100%; height: 180px; object-fit: cover; background: #111; transition: 0.4s; }
-        .game-card:hover .game-thumb { transform: scale(1.05); }
+        .card-img { width: 100%; height: 160px; object-fit: cover; }
+        .card-body { padding: 15px; }
+        .card-title { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; }
+        .card-meta { display: flex; gap: 10px; margin-top: 10px; font-size: 12px; opacity: 0.5; }
 
-        .game-info { padding: 18px; }
-        .game-title { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 8px; display: block; }
-        
-        .game-stats { display: flex; gap: 15px; font-size: 12px; opacity: 0.6; font-weight: 600; }
-        .stat-item { display: flex; align-items: center; gap: 4px; }
-
-        /* Modais */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; z-index: 2000; backdrop-filter: blur(10px); }
-        .modal { 
+        /* MODAIS */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 999; backdrop-filter: blur(5px); }
+        .modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #0f172a; padding: 35px; border-radius: 20px; z-index: 2001;
-            width: 90%; max-width: 420px; display: none; border: 1px solid rgba(139, 92, 246, 0.3);
+            background: #161b22; padding: 30px; border-radius: 15px; z-index: 1000;
+            width: 90%; max-width: 400px; display: none; border: 1px solid var(--accent);
         }
-        
-        input, textarea { 
-            width: 100%; padding: 14px; margin: 12px 0; border-radius: 10px; 
-            border: 1px solid #1e293b; background: #070b14; color: white; 
-            box-sizing: border-box; font-family: inherit; outline: none;
-        }
-        input:focus { border-color: var(--accent); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
 
-        /* Tela do Jogo Full */
-        .game-page { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; }
-        .game-header { 
-            padding: 15px 25px; background: #0f172a; display: flex; 
-            justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b;
-        }
-        .game-frame { width: 100%; height: 100%; border: none; }
-
-        .badge-god { background: var(--gold); color: #000; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 10px; vertical-align: middle; }
+        /* PLAYER DE JOGO */
+        .player-screen { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; }
+        .player-header { padding: 15px; background: #161b22; display: flex; justify-content: space-between; align-items: center; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">
-            GAMEHUB <span id="godBadge" class="badge-god" style="display:none">GOD MODE</span>
-        </div>
-        <div class="nav-right">
-            <button class="btn-main admin-btn" id="btnAdmin" onclick="checkAdminPass()">
-                <i data-lucide="shield-check"></i> ADMIN
-            </button>
-            <button class="btn-main" onclick="openModal('postModal')">
-                <i data-lucide="plus-circle"></i> POSTAR
-            </button>
-            <div class="user-profile" onclick="openModal('authModal')">
-                <img src="" id="navAvatar" class="user-avatar" style="display:none;">
-                <span id="navUser">ENTRAR</span>
+        <div class="logo">GAMEHUB</div>
+        <div class="nav-btns">
+            <button class="btn btn-admin" id="admBtn" onclick="openAdmin()">ADMIN</button>
+            <button class="btn btn-post" onclick="showModal('postModal')">POSTAR JOGO</button>
+            <div class="profile-trigger" onclick="showModal('loginModal')">
+                <img src="" id="userImg" class="avatar" style="display:none">
+                <span id="userName">ENTRAR</span>
             </div>
         </div>
     </header>
 
-    <div class="container">
-        <h2 style="font-size: 0.8rem; opacity: 0.4; letter-spacing: 4px; margin-bottom: 30px;">CLOUDGAMES EXPLORER</h2>
-        <div class="game-grid" id="mainGrid"></div>
+    <div class="main-content">
+        <div class="grid" id="gameGrid"></div>
     </div>
 
-    <div class="modal-overlay" id="overlay" onclick="closeModals()"></div>
-
-    <div class="modal" id="authModal">
-        <h2 style="margin-top:0; font-weight: 900;">MEU PERFIL</h2>
-        <input type="email" id="emailIn" placeholder="E-mail">
-        <input type="text" id="nickIn" placeholder="Seu Nickname">
-        <button class="btn-main" style="width:100%; justify-content: center; padding: 15px;" onclick="saveProfile()">ENTRAR / ATUALIZAR</button>
-        <button onclick="logout()" style="width:100%; background:none; border:none; color:var(--danger); margin-top:15px; cursor:pointer; font-weight:bold;">SAIR DA CONTA</button>
+    <div class="overlay" id="blur" onclick="hideModals()"></div>
+    <div class="modal" id="loginModal">
+        <h2>PERFIL</h2>
+        <input type="email" id="inEmail" placeholder="E-mail">
+        <input type="text" id="inNick" placeholder="Nickname">
+        <button class="btn btn-post" style="width:100%" onclick="login()">SALVAR</button>
+        <button onclick="logout()" style="margin-top:10px; background:none; border:none; color:red; cursor:pointer; width:100%">Sair da conta</button>
     </div>
 
     <div class="modal" id="postModal">
-        <h2 style="margin-top:0; font-weight: 900;">PUBLICAR JOGO</h2>
-        <input type="text" id="postTitle" placeholder="Nome do Jogo">
-        <input type="text" id="postUrl" placeholder="Link do Jogo (.html ou URL)">
-        <input type="text" id="postThumb" placeholder="Link da Capa (Imagem)">
-        <textarea id="postDesc" placeholder="Descrição rápida..." rows="3"></textarea>
-        <button class="btn-main" style="width:100%; justify-content: center; padding: 15px;" onclick="saveGame()">SUBIR PARA NUVEM</button>
+        <h2>NOVO JOGO</h2>
+        <input type="text" id="pTitle" placeholder="Título do Jogo">
+        <input type="text" id="pUrl" placeholder="Link do Jogo">
+        <input type="text" id="pImg" placeholder="Link da Capa (Imagem)">
+        <button class="btn btn-post" style="width:100%" onclick="sendGame()">PUBLICAR</button>
     </div>
 
-    <div class="modal" id="adminModal" style="border-color: var(--gold);">
-        <h2 style="margin-top:0; color: var(--gold); font-weight: 900;">GOD PANEL</h2>
-        <p style="font-size: 12px; opacity: 0.7;">Edite as métricas de qualquer jogo pelo ID.</p>
-        <input type="text" id="admId" placeholder="Cole o ID do Jogo aqui">
-        <input type="text" id="admTitle" placeholder="Mudar Título">
-        <input type="number" id="admLikes" placeholder="Definir Likes">
-        <input type="number" id="admViews" placeholder="Definir Views">
-        <button class="btn-main" style="width:100%; background:var(--gold); color:#000; justify-content:center;" onclick="updateGameAdmin()">SALVAR ALTERAÇÕES</button>
-    </div>
-
-    <div class="game-page" id="gamePage">
-        <div class="game-header">
-            <button class="btn-main" style="background:#1e293b" onclick="closeGame()">
-                <i data-lucide="arrow-left"></i> VOLTAR
-            </button>
-            <span id="pgTitle" style="font-weight:900; color:var(--accent); font-size: 1.2rem;"></span>
-            <div id="pgId" style="font-size:10px; opacity:0.4; cursor:pointer" onclick="copyId()">ID: ...</div>
+    <div class="player-screen" id="player">
+        <div class="player-header">
+            <button class="btn" style="background:#30363d; color:white" onclick="closeGame()">FECHAR</button>
+            <span id="gameTitle" style="font-weight:900"></span>
+            <div id="gameIdDisplay" style="font-size:10px; opacity:0.3; cursor:pointer" onclick="copyId()">ID</div>
         </div>
-        <iframe id="gameIframe" class="game-frame" src=""></iframe>
+        <iframe id="gameFrame" src=""></iframe>
     </div>
 
     <script>
-        // Configuração puxada do arquivo externo config.js
-        const firebaseConfig = {
+        // FIREBASE INICIANDO COM CONFIG.JS
+        firebase.initializeApp({
             apiKey: CONFIG.FIREBASE_API_KEY,
             authDomain: "game-dev-space.firebaseapp.com",
             projectId: "game-dev-space",
             storageBucket: "game-dev-space.appspot.com",
             messagingSenderId: "1073185335190",
             appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
-        };
+        });
 
-        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
-        let currentUser = JSON.parse(localStorage.getItem('gh_sess')) || null;
-        let activeId = null;
+        let user = JSON.parse(localStorage.getItem('gh_user')) || null;
+        let currentId = null;
 
-        // Inicializador
-        function init() {
-            renderGames();
-            updateUI();
-            lucide.createIcons();
+        function updateUI() {
+            if(user) {
+                document.getElementById('userName').innerText = user.nick.toUpperCase();
+                document.getElementById('userImg').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.nick}`;
+                document.getElementById('userImg').style.display = 'block';
+                if(user.email === CONFIG.ADMIN_EMAIL) document.getElementById('admBtn').style.display = 'block';
+            }
         }
 
-        // Busca jogos e desenha na tela
-        function renderGames() {
+        function login() {
+            const email = document.getElementById('inEmail').value;
+            const nick = document.getElementById('inNick').value;
+            if(email && nick) {
+                user = { email, nick };
+                localStorage.setItem('gh_user', JSON.stringify(user));
+                updateUI();
+                hideModals();
+            }
+        }
+
+        function loadGames() {
             db.collection("games").orderBy("createdAt", "desc").onSnapshot(snap => {
-                const grid = document.getElementById('mainGrid');
+                const grid = document.getElementById('gameGrid');
                 grid.innerHTML = '';
                 snap.forEach(doc => {
                     const g = doc.data();
-                    const img = g.thumb || g.pic || 'https://via.placeholder.com/400x200/111/fff?text=GAMEHUB';
-                    
                     grid.innerHTML += `
-                        <div class="game-card" onclick="openGame('${doc.id}', '${g.url}', '${g.title}')">
-                            <img src="${img}" class="game-thumb">
-                            <div class="game-info">
-                                <span class="game-title">${g.title}</span>
-                                <div class="game-stats">
-                                    <div class="stat-item"><i data-lucide="heart" style="width:14px;color:var(--danger)"></i> ${g.likes || 0}</div>
-                                    <div class="stat-item"><i data-lucide="eye" style="width:14px;"></i> ${g.views || 0}</div>
+                        <div class="card" onclick="openGame('${doc.id}', '${g.url}', '${g.title}')">
+                            <img src="${g.thumb || g.pic || ''}" class="card-img">
+                            <div class="card-body">
+                                <div class="card-title">${g.title}</div>
+                                <div class="card-meta">
+                                    <span>${g.likes || 0} LIKES</span>
+                                    <span>${g.views || 0} VIEWS</span>
                                 </div>
                             </div>
                         </div>`;
                 });
-                lucide.createIcons();
             });
         }
 
-        // Abre o Jogo
         function openGame(id, url, title) {
-            activeId = id;
-            document.getElementById('pgTitle').innerText = title;
-            document.getElementById('pgId').innerText = "ID: " + id;
-            document.getElementById('gameIframe').src = url;
-            document.getElementById('gamePage').style.display = 'flex';
+            currentId = id;
+            document.getElementById('gameTitle').innerText = title;
+            document.getElementById('gameIdDisplay').innerText = "ID: " + id;
+            document.getElementById('gameFrame').src = url;
+            document.getElementById('player').style.display = 'flex';
+            db.collection("games").doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
+        }
+
+        function sendGame() {
+            if(!user) return alert("Faz login primeiro!");
+            const title = document.getElementById('pTitle').value;
+            const url = document.getElementById('pUrl').value;
+            const thumb = document.getElementById('pImg').value;
             
-            // Incrementa view
-            db.collection("games").doc(id).update({
-                views: firebase.firestore.FieldValue.increment(1)
-            });
+            db.collection("games").add({
+                title, url, thumb,
+                likes: 0, views: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => { hideModals(); alert("Postado!"); });
         }
 
-        function closeGame() {
-            document.getElementById('gamePage').style.display = 'none';
-            document.getElementById('gameIframe').src = '';
-        }
-
-        // Perfil e UI
-        function updateUI() {
-            if (currentUser) {
-                document.getElementById('navUser').innerText = currentUser.nick.toUpperCase();
-                document.getElementById('navAvatar').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${currentUser.nick}`;
-                document.getElementById('navAvatar').style.display = 'block';
-                
-                // Campos do Modal
-                document.getElementById('emailIn').value = currentUser.email;
-                document.getElementById('nickIn').value = currentUser.nick;
-
-                // Verifica Admin
-                if (currentUser.email === CONFIG.ADMIN_EMAIL) {
-                    document.getElementById('btnAdmin').style.display = 'flex';
-                    document.getElementById('godBadge').style.display = 'inline-block';
+        function openAdmin() {
+            const p = prompt("Senha Admin:");
+            if(p === CONFIG.ADMIN_PASS) {
+                const id = prompt("ID do Jogo para apagar/editar:");
+                if(id) {
+                    const acao = confirm("OK para APAGAR, Cancelar para EDITAR LIKES");
+                    if(acao) db.collection("games").doc(id).delete();
+                    else {
+                        const l = prompt("Quantos likes?");
+                        db.collection("games").doc(id).update({ likes: parseInt(l) });
+                    }
                 }
             }
         }
 
-        function saveProfile() {
-            const email = document.getElementById('emailIn').value.trim().toLowerCase();
-            const nick = document.getElementById('nickIn').value.trim();
-            if(!email || !nick) return alert("Preencha todos os campos!");
+        function showModal(id) { document.getElementById('blur').style.display='block'; document.getElementById(id).style.display='block'; }
+        function hideModals() { document.getElementById('blur').style.display='none'; document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
+        function closeGame() { document.getElementById('player').style.display='none'; document.getElementById('gameFrame').src=''; }
+        function logout() { localStorage.removeItem('gh_user'); location.reload(); }
+        function copyId() { navigator.clipboard.writeText(currentId); alert("ID Copiado!"); }
 
-            currentUser = { email, nick };
-            localStorage.setItem('gh_sess', JSON.stringify(currentUser));
-            updateUI();
-            closeModals();
-        }
-
-        // Postagem
-        function saveGame() {
-            if(!currentUser) return alert("Você precisa estar logado!");
-            const title = document.getElementById('postTitle').value;
-            const url = document.getElementById('postUrl').value;
-            const thumb = document.getElementById('postThumb').value;
-            const desc = document.getElementById('postDesc').value;
-
-            if(!title || !url) return alert("Título e URL são obrigatórios!");
-
-            db.collection("games").add({
-                title, url, thumb, desc,
-                likes: 0, views: 0,
-                author: currentUser.email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                alert("Jogo enviado com sucesso!");
-                closeModals();
-            });
-        }
-
-        // Admin
-        function checkAdminPass() {
-            const pass = prompt("SENHA DO MODO DEUS:");
-            if(pass === CONFIG.ADMIN_PASS) openModal('adminModal');
-            else alert("ACESSO NEGADO!");
-        }
-
-        async function updateGameAdmin() {
-            const id = document.getElementById('admId').value;
-            const title = document.getElementById('admTitle').value;
-            const likes = document.getElementById('admLikes').value;
-            const views = document.getElementById('admViews').value;
-
-            if(!id) return alert("ID do jogo é necessário!");
-
-            let up = {};
-            if(title) up.title = title;
-            if(likes) up.likes = parseInt(likes);
-            if(views) up.views = parseInt(views);
-
-            await db.collection("games").doc(id).update(up);
-            alert("Métricas atualizadas!");
-            closeModals();
-        }
-
-        // Helpers
-        function openModal(id) { 
-            document.getElementById('overlay').style.display = 'block'; 
-            document.getElementById(id).style.display = 'block'; 
-        }
-        function closeModals() { 
-            document.getElementById('overlay').style.display = 'none'; 
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
-        }
-        function logout() { localStorage.removeItem('gh_sess'); location.reload(); }
-        function copyId() { navigator.clipboard.writeText(activeId); alert("ID Copiado para edição!"); }
-
-        // Run
-        init();
+        updateUI();
+        loadGames();
     </script>
 </body>
 </html>
