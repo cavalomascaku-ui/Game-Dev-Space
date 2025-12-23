@@ -9,21 +9,10 @@ const firebaseConfig = {
   appId: "1:1073185335190:web:ae9ffd88cdf89f53cbdfb7"
 };
 
-// AI Configuration (placeholder - replace with actual API key)
-const AI_CONFIG = {
-  // For image generation, you can use services like:
-  // - OpenAI DALL-E
-  // - Stability AI
-  // - Replicate
-  enabled: true,
-  placeholder: true // Set to false when using real AI
-};
-
 // App Configuration
 const APP_CONFIG = {
-  appName: "GameDev Space",
-  version: "1.0.0",
+  appName: "Game Dev Space",
   maxFileSize: 10 * 1024 * 1024, // 10MB
-  allowedFileTypes: ['.html', '.css', '.js', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.mp3', '.wav', '.ogg'],
-  gamesPerPage: 12
+  allowedFileTypes: ['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg'],
+  geminiApiKey: "AIzaSyAMHAKVot044psR421B_t-Ht5EmsueVS8A"
 };
