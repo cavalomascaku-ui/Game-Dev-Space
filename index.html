@@ -1,90 +1,233 @@
-<div id="methodUpload" style="display: none;">
-    <label for="gameUpload" class="file-upload-label">SELECIONAR HTML/JS/CSS</label>
-    <input type="file" id="gameUpload" accept=".html,.js,.css" multiple onchange="handleSecureUpload(this)">
-    <div id="scanStatus" style="font-size: 0.7rem; margin-top: 5px;"></div>
-</div>
-
-<script>
-    // ... suas variáveis iniciais ...
-    let safeFileBundle = ""; 
-
-    // FUNÇÃO DE SCAN E INTEGRAÇÃO DE ARQUIVOS
-    async function handleSecureUpload(input) {
-        const files = input.files;
-        const status = document.getElementById('scanStatus');
-        const btn = document.querySelector('button[onclick="saveGame()"]');
-        
-        status.innerText = "🔍 Analisando segurança...";
-        status.style.color = "var(--accent)";
-        btn.disabled = true;
-
-        let combinedContent = "";
-        
-        for (let file of files) {
-            const content = await file.text();
-            const isSafe = await scanFileSecurity(content);
-            
-            if (!isSafe) {
-                status.innerText = `❌ BLOQUEADO: Risco detectado em ${file.name}`;
-                status.style.color = "var(--danger)";
-                btn.disabled = true;
-                return;
-            }
-            // Se for JS ou CSS, guardamos para validar, mas o bundle foca no HTML principal
-            combinedContent += content;
-        }
-
-        // Localiza o HTML principal para ser o ponto de entrada
-        const mainFile = Array.from(files).find(f => f.name.endsWith('.html'));
-        
-        if (mainFile) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                safeFileBundle = e.target.result;
-                status.innerText = "✅ Arquivos verificados e seguros!";
-                status.style.color = "#10b981";
-                btn.disabled = false;
-            };
-            reader.readAsDataURL(mainFile);
-        } else {
-            status.innerText = "❌ Selecione ao menos um arquivo .html";
-            status.style.color = "var(--danger)";
-        }
-    }
-
-    // AJUSTE NA FUNÇÃO SAVEGAME PARA USAR O BUNDLE
-    async function saveGame() {
-        if(!currentUser) return alert("LOGUE PRIMEIRO!");
-        const title = document.getElementById('postTitle').value;
-        const pic = document.getElementById('postPic').value;
-        const desc = document.getElementById('postDesc').value;
-        let url = "";
-
-        if(postMethod === 'link') {
-            url = document.getElementById('postUrl').value;
-        } else {
-            url = safeFileBundle; // Usa o arquivo escaneado pela IA
-        }
-
-        if(!title || !url) return alert("TITULO OU ARQUIVO FALTANDO!");
-
-        await db.collection("games").add({
-            title, pic, url, desc, 
-            likes: 0, views: 0, likedBy: [],
-            author: currentUser.email, 
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        closeModals();
-    }
-
-    // SEGURANÇA NO IFRAME (Sandbox)
-    // No seu openGame, certifique-se que o iframe tenha o sandbox ativo:
-    function openGame(id) {
-        // ... sua lógica de buscar o doc ...
-        document.getElementById('gameIframe').setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
-        document.getElementById('gameIframe').src = g.url;
-        // ... resto da função ...
-    }
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMEHUB | Cloud</title>
     
-    // O resto do seu código (Admin, Auth, Render) continua IGUAL.
-</script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #070b14;
+            --accent: #8b5cf6;
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --text: #f8fafc;
+            --danger: #ef4444;
+            --glow: 0 0 15px rgba(139, 92, 246, 0.6);
+            --gold: #fbbf24;
+        }
+
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            background: var(--bg-dark); color: var(--text);
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 80px 80px; animation: moveGrid 30s linear infinite;
+        }
+
+        @keyframes moveGrid { from { background-position: 0 0; } to { background-position: 80px 80px; } }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: rgba(7, 11, 20, 0.9);
+            backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .search-container { flex-grow: 1; max-width: 500px; margin: 0 20px; position: relative; }
+        .search-container input {
+            width: 100%; padding: 12px 20px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: white; outline: none; transition: 0.3s;
+        }
+
+        .nav-right { display: flex; gap: 15px; align-items: center; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .game-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.4s; position: relative; }
+        .game-card:hover { border-color: var(--accent); box-shadow: var(--glow); transform: scale(1.02); }
+        .game-thumb { width: 100%; height: 160px; object-fit: cover; }
+
+        .game-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: none; flex-direction: column; }
+        .game-header { padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: #0f172a; border-bottom: 1px solid #1e293b; }
+        .iframe-wrapper { width: 100%; max-width: 1100px; height: 75vh; background: #000; border-radius: 12px; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; backdrop-filter: blur(5px); }
+        .modal-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111827; padding: 30px; border-radius: 12px; z-index: 2001; width: 90%; max-width: 450px; display: none; border: 1px solid var(--accent); }
+        
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #1f2937; background: #030712; color: white; box-sizing: border-box; }
+        .file-upload-label { display: block; padding: 12px; margin: 8px 0; border: 2px dashed #1f2937; border-radius: 6px; text-align: center; cursor: pointer; color: #94a3b8; font-size: 0.8rem; }
+        input[type="file"] { display: none; }
+        .tab-btn { padding: 5px 10px; cursor: pointer; font-size: 0.8rem; opacity: 0.6; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animation"></div>
+
+    <header>
+        <div style="font-weight: 900; color: var(--accent); font-size: 1.6rem;">GAMEHUB</div>
+        <div class="search-container"><input type="text" placeholder="PESQUISAR..."></div>
+        <div class="nav-right">
+            <button class="btn-main" onclick="openModal('postModal')">POSTAR</button>
+            <div class="user-profile" onclick="openModal('authModal')">
+                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=user" id="navAvatar" class="user-avatar" width="30">
+                <span id="navUser">ENTRAR</span>
+            </div>
+            <button class="btn-main" onclick="logout()" style="background: #1e293b;">SAIR</button>
+        </div>
+    </header>
+
+    <div class="container" style="padding: 20px; max-width: 1200px; margin: auto;">
+        <div class="game-grid" id="mainGrid"></div>
+    </div>
+
+    <div class="game-page" id="gamePage">
+        <div class="game-header">
+            <div id="pgTitle" style="font-weight: 900; color: var(--accent);">TITULO</div>
+            <button onclick="closeGame()" class="btn-main">FECHAR</button>
+        </div>
+        <div style="display: flex; justify-content: center; padding: 20px;">
+            <div class="iframe-wrapper">
+                <iframe src="" id="gameIframe" sandbox="allow-scripts allow-same-origin" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModals()"></div>
+
+    <div class="modal-box" id="postModal">
+        <h2>NOVO JOGO</h2>
+        <input type="text" id="postTitle" placeholder="TITULO">
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <span class="tab-btn active" id="tabLink" onclick="switchTab('link')">URL</span>
+            <span class="tab-btn" id="tabUpload" onclick="switchTab('upload')">ARQUIVOS (HTML/JS)</span>
+        </div>
+
+        <div id="methodLink"><input type="text" id="postUrl" placeholder="URL DO JOGO"></div>
+        <div id="methodUpload" style="display: none;">
+            <label for="gameUpload" class="file-upload-label">📁 SELECIONAR ARQUIVOS</label>
+            <input type="file" id="gameUpload" accept=".html,.js,.css" multiple onchange="handleFiles(this)">
+            <div id="scanStatus" style="font-size: 0.7rem; text-align: center;"></div>
+        </div>
+
+        <textarea id="postDesc" placeholder="DESCRICAO"></textarea>
+        <button class="btn-main" id="btnPublish" style="width:100%" onclick="saveGame()">PUBLICAR</button>
+    </div>
+
+    <div class="modal-box" id="authModal">
+        <h2>CONTA</h2>
+        <input type="email" id="emailIn" placeholder="EMAIL">
+        <input type="text" id="nickIn" placeholder="NICKNAME">
+        <button class="btn-main" style="width:100%" onclick="handleAuth()">ENTRAR</button>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('gh_sess')) || null;
+        let postMethod = 'link';
+        let safeBundle = "";
+
+        function init() {
+            if(currentUser) updateNavUser();
+            db.collection("games").orderBy("createdAt", "desc").onSnapshot(s => {
+                const m = document.getElementById('mainGrid');
+                m.innerHTML = '';
+                s.forEach(doc => {
+                    const g = doc.data();
+                    m.innerHTML += `<div class="game-card" onclick="openGame('${g.url}', '${g.title}')">
+                        <img src="https://picsum.photos/seed/${doc.id}/300/160" class="game-thumb">
+                        <div style="padding:15px"><b>${g.title}</b></div>
+                    </div>`;
+                });
+            });
+        }
+
+        async function handleFiles(input) {
+            const files = input.files;
+            const status = document.getElementById('scanStatus');
+            status.innerText = "Verificando arquivos...";
+            
+            for (let f of files) {
+                const text = await f.text();
+                const isSafe = await scanFileSecurity(text);
+                if(!isSafe) {
+                    status.innerText = "❌ CÓDIGO SUSPEITO DETECTADO!";
+                    status.style.color = "red";
+                    return;
+                }
+            }
+
+            const main = Array.from(files).find(f => f.name.endsWith('.html'));
+            if(main) {
+                const reader = new FileReader();
+                reader.onload = e => { 
+                    safeBundle = e.target.result; 
+                    status.innerText = "✅ Seguro para upload!";
+                    status.style.color = "#10b981";
+                };
+                reader.readAsDataURL(main);
+            }
+        }
+
+        async function saveGame() {
+            const title = document.getElementById('postTitle').value;
+            let url = postMethod === 'link' ? document.getElementById('postUrl').value : safeBundle;
+            
+            if(!title || !url) return alert("Preencha os campos!");
+
+            await db.collection("games").add({
+                title, url, author: currentUser?.email || "Anônimo",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            closeModals();
+        }
+
+        function openGame(url, title) {
+            document.getElementById('pgTitle').innerText = title;
+            document.getElementById('gameIframe').src = url;
+            document.getElementById('gamePage').style.display = 'flex';
+        }
+
+        function switchTab(m) {
+            postMethod = m;
+            document.getElementById('methodLink').style.display = m === 'link' ? 'block' : 'none';
+            document.getElementById('methodUpload').style.display = m === 'upload' ? 'block' : 'none';
+            document.getElementById('tabLink').classList.toggle('active', m === 'link');
+            document.getElementById('tabUpload').classList.toggle('active', m === 'upload');
+        }
+
+        function handleAuth() {
+            const nick = document.getElementById('nickIn').value;
+            const email = document.getElementById('emailIn').value;
+            currentUser = { nick, email };
+            localStorage.setItem('gh_sess', JSON.stringify(currentUser));
+            updateNavUser();
+            closeModals();
+        }
+
+        function updateNavUser() { document.getElementById('navUser').innerText = currentUser.nick; }
+        function logout() { localStorage.removeItem('gh_sess'); location.reload(); }
+        function openModal(id) { document.getElementById('modalOverlay').style.display='block'; document.getElementById(id).style.display='block'; }
+        function closeModals() { document.getElementById('modalOverlay').style.display='none'; document.querySelectorAll('.modal-box').forEach(m => m.style.display='none'); }
+        function closeGame() { document.getElementById('gamePage').style.display='none'; document.getElementById('gameIframe').src=''; }
+
+        init();
+    </script>
+</body>
+</html>
