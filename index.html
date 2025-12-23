@@ -2,112 +2,255 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>GAMEHUB | Ultra Secure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMEHUB | Cloud</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+
     <style>
-        /* Adicione aqui o seu CSS anterior */
-        :root { --accent: #8b5cf6; --bg: #070b14; }
-        .security-badge { color: #10b981; font-size: 0.7rem; font-weight: bold; }
+        :root {
+            --bg-dark: #070b14;
+            --accent: #8b5cf6;
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --text: #f8fafc;
+            --danger: #ef4444;
+            --glow: 0 0 15px rgba(139, 92, 246, 0.6);
+        }
+
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            background: var(--bg-dark); color: var(--text);
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 80px 80px; animation: moveGrid 30s linear infinite;
+        }
+
+        @keyframes moveGrid { from { background-position: 0 0; } to { background-position: 80px 80px; } }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: rgba(7, 11, 20, 0.9);
+            backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .search-container { flex-grow: 1; max-width: 500px; margin: 0 20px; position: relative; }
+        .search-container input {
+            width: 100%; padding: 12px 20px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: white; outline: none; transition: 0.3s;
+        }
+
+        .nav-right { display: flex; gap: 15px; align-items: center; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-main:hover { box-shadow: var(--glow); transform: translateY(-2px); }
+
+        .user-profile { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px 12px; border-radius: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #1e293b; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .section-title { font-size: 1rem; font-weight: 900; margin: 40px 0 20px; letter-spacing: 2px; color: rgba(255,255,255,0.5); border-left: 4px solid var(--accent); padding-left: 15px; }
+
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .game-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.4s; }
+        .game-card:hover { border-color: var(--accent); box-shadow: var(--glow); transform: scale(1.02); }
+        .game-thumb { width: 100%; height: 160px; object-fit: cover; }
+
+        .game-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 1000; display: none; flex-direction: column; }
+        .game-header { padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: #0f172a; border-bottom: 1px solid #1e293b; }
+        .iframe-wrapper { width: 100%; max-width: 1100px; height: 75vh; background: #000; border-radius: 12px; overflow: hidden; }
+        
+        /* SEGURANÇA: Sandbox impede que o jogo escape para o site principal */
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; backdrop-filter: blur(5px); }
+        .modal-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111827; padding: 30px; border-radius: 12px; z-index: 2001; width: 90%; max-width: 450px; display: none; border: 1px solid var(--accent); overflow-y: auto; max-height: 90vh; }
+        
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #1f2937; background: #030712; color: white; box-sizing: border-box; }
+        .file-upload-label { display: block; padding: 12px; margin: 8px 0; border: 2px dashed #1f2937; border-radius: 6px; text-align: center; cursor: pointer; color: #94a3b8; font-size: 0.8rem; }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
-    <div id="gamePage" class="game-page">
+
+    <div class="bg-animation"></div>
+
+    <header>
+        <div style="font-weight: 900; color: var(--accent); font-size: 1.6rem; letter-spacing: -1px;">GAMEHUB</div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="PESQUISAR..." oninput="searchGames()">
+        </div>
+        <div class="nav-right">
+            <button class="btn-main" onclick="openModal('postModal')">POSTAR</button>
+            <div class="user-profile" onclick="openModal('authModal')">
+                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=user" id="navAvatar" class="user-avatar">
+                <span id="navUser">ENTRAR</span>
+            </div>
+            <button class="btn-main" onclick="logout()" style="background: #1e293b; padding: 5px 10px; font-size: 0.8rem;">SAIR</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="highSection">
+            <div class="section-title">MAIS CURTIDOS</div>
+            <div class="game-grid" id="highGrid"></div>
+        </div>
+        <div class="section-title">TODOS OS JOGOS</div>
+        <div class="game-grid" id="mainGrid"></div>
+    </div>
+
+    <div class="game-page" id="gamePage">
         <div class="game-header">
-            <span id="pgTitle">JOGO</span>
-            <button onclick="closeGame()">FECHAR</button>
+            <div id="pgTitle" style="font-weight: 900; text-transform: uppercase; color: var(--accent);">TITULO</div>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn-main" onclick="toggleFull()">TELA CHEIA</button>
+                <button onclick="closeGame()" class="btn-main" style="background:#1e293b">FECHAR</button>
+            </div>
         </div>
-        <div class="iframe-wrapper">
-            <iframe src="" id="gameIframe" 
-                sandbox="allow-scripts allow-same-origin allow-forms" 
-                allowfullscreen></iframe>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 30px;">
+            <div class="iframe-wrapper">
+                <iframe src="" id="gameIframe" sandbox="allow-scripts allow-same-origin allow-forms" allowfullscreen></iframe>
+            </div>
         </div>
     </div>
 
-    <div id="postModal" class="modal-box">
-        <h2>SUBIR PROJETO <span class="security-badge">AI SCAN ACTIVE</span></h2>
-        <input type="text" id="postTitle" placeholder="Título do Jogo">
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModals()"></div>
+
+    <div class="modal-box" id="authModal">
+        <h2>CONTA</h2>
+        <input type="email" id="emailIn" placeholder="E-MAIL">
+        <input type="text" id="nickIn" placeholder="NICKNAME">
+        <button class="btn-main" style="width:100%" onclick="handleAuth()">ENTRAR E SALVAR</button>
+    </div>
+
+    <div class="modal-box" id="postModal">
+        <h2>NOVO JOGO (HTML/JS/CSS)</h2>
+        <input type="text" id="postTitle" placeholder="TITULO DO JOGO">
         
-        <div class="file-area">
+        <div class="ai-container" style="background: rgba(139, 92, 246, 0.1); padding: 10px; border-radius: 8px;">
+            <div style="font-size: 0.7rem; color: var(--accent); margin-bottom: 5px;">SCANNER DE SEGURANÇA ATIVO ✨</div>
             <label for="gameFiles" class="file-upload-label">📁 SELECIONAR ARQUIVOS (HTML/JS/CSS)</label>
-            <input type="file" id="gameFiles" accept=".html,.js,.css" multiple onchange="scanFiles(this)">
-            <div id="scanStatus"></div>
+            <input type="file" id="gameFiles" accept=".html,.js,.css" multiple onchange="handleFileScan(this)">
+            <div id="scanMsg" style="font-size: 0.7rem; text-align: center;"></div>
         </div>
 
-        <button class="btn-main" id="publishBtn" disabled onclick="publishProject()">PUBLICAR PROJETO</button>
+        <textarea id="postDesc" placeholder="DESCRICAO" rows="3"></textarea>
+        <button class="btn-main" id="btnPublish" style="width:100%; margin-top: 10px;" disabled onclick="saveGame()">PUBLICAR</button>
     </div>
 
-    <script src="config.js"></script>
     <script>
-        let currentUser = AuthSystem.getSession();
-        let safeFilesBundle = "";
+        let currentUser = JSON.parse(localStorage.getItem('gh_sess')) || null;
+        let safeBundle = "";
 
-        // IA de Verificação de Segurança (Heurística)
-        async function scanFiles(input) {
+        function init() {
+            if(currentUser) updateNavUser();
+            db.collection("games").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+                const list = [];
+                snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+                render(list);
+            });
+            lucide.createIcons();
+        }
+
+        async function handleFileScan(input) {
             const files = input.files;
-            const status = document.getElementById('scanStatus');
-            const btn = document.getElementById('publishBtn');
-            status.innerHTML = "🔍 Escaneando arquivos...";
+            const msg = document.getElementById('scanMsg');
+            const btn = document.getElementById('btnPublish');
             
-            for (let file of files) {
-                const text = await file.text();
-                
-                // Padrões de Malware/XSS comuns
-                const dangerousPatterns = [
-                    /localStorage/gi, /sessionStorage/gi, /document\.cookie/gi,
-                    /<script.*src.*http/gi, /eval\(/gi, /top\.location/gi,
-                    /parent\.document/gi, /fetch\(.*http.*\.php/gi
-                ];
-
-                for (let pattern of dangerousPatterns) {
-                    if (pattern.test(text)) {
-                        status.innerHTML = `❌ ERRO: Código suspeito detectado em ${file.name}!`;
-                        status.style.color = "#ef4444";
-                        btn.disabled = true;
-                        return;
-                    }
+            msg.innerText = "Escaneando código...";
+            
+            for (let f of files) {
+                const text = await f.text();
+                const isSafe = await scanForMalware(text);
+                if(!isSafe) {
+                    msg.innerText = "❌ CÓDIGO MALICIOSO DETECTADO EM: " + f.name;
+                    msg.style.color = "red";
+                    btn.disabled = true;
+                    return;
                 }
             }
 
-            // Se for HTML/JS/CSS, vamos "empacotar" em um único Base64 seguro
-            // (Para Three.js, o ideal é subir um ZIP ou usar um bundler, mas aqui usamos o arquivo principal)
-            const mainFile = Array.from(files).find(f => f.name.endsWith('.html'));
-            if(mainFile) {
+            const main = Array.from(files).find(f => f.name.endsWith('.html'));
+            if(main) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    safeFilesBundle = e.target.result;
-                    status.innerHTML = "✅ Arquivos verificados e seguros!";
-                    status.style.color = "#10b981";
+                reader.onload = e => { 
+                    safeBundle = e.target.result; 
+                    msg.innerText = "✅ Código Seguro!"; 
+                    msg.style.color = "#10b981";
                     btn.disabled = false;
                 };
-                reader.readAsDataURL(mainFile);
+                reader.readAsDataURL(main);
             }
         }
 
-        async function publishProject() {
-            const title = document.getElementById('postTitle').value;
-            if(!title || !safeFilesBundle) return alert("Preencha tudo!");
-
-            await db.collection("games").add({
-                title: escapeHTML(title), // Sanitiza o título
-                url: safeFilesBundle,
-                author: currentUser.email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert("Sucesso!");
-            location.reload();
+        async function handleAuth() {
+            const email = document.getElementById('emailIn').value;
+            const nick = document.getElementById('nickIn').value;
+            if(!email || !nick) return alert("Preencha tudo!");
+            
+            currentUser = { email, nick, pic: `https://api.dicebear.com/7.x/identicon/svg?seed=${nick}` };
+            localStorage.setItem('gh_sess', JSON.stringify(currentUser));
+            updateNavUser();
+            closeModals();
         }
 
-        function escapeHTML(str) {
-            const p = document.createElement('p');
-            p.textContent = str;
-            return p.innerHTML;
+        async function saveGame() {
+            if(!currentUser) return alert("LOGUE PRIMEIRO!");
+            const title = sanitize(document.getElementById('postTitle').value);
+            const desc = sanitize(document.getElementById('postDesc').value);
+
+            await db.collection("games").add({
+                title, desc, url: safeBundle,
+                author: currentUser.email,
+                likes: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            closeModals();
+        }
+
+        function render(list) {
+            const m = document.getElementById('mainGrid');
+            const h = document.getElementById('highGrid');
+            m.innerHTML = ''; h.innerHTML = '';
+            list.forEach(g => m.innerHTML += createCard(g));
+            [...list].sort((a,b) => (b.likes||0)-(a.likes||0)).slice(0,4).forEach(g => h.innerHTML += createCard(g));
+        }
+
+        function createCard(g) {
+            return `<div class="game-card" onclick="openGame('${g.url}', '${g.title}')">
+                <img src="https://picsum.photos/seed/${g.id}/300/160" class="game-thumb">
+                <div style="padding:15px"><b>${g.title}</b></div>
+            </div>`;
         }
 
         function openGame(url, title) {
-            const frame = document.getElementById('gameIframe');
             document.getElementById('pgTitle').innerText = title;
-            frame.src = url;
+            document.getElementById('gameIframe').src = url;
             document.getElementById('gamePage').style.display = 'flex';
         }
+
+        function logout() { localStorage.removeItem('gh_sess'); location.reload(); }
+        function updateNavUser() { 
+            document.getElementById('navUser').innerText = currentUser.nick;
+            document.getElementById('navAvatar').src = currentUser.pic;
+        }
+        function openModal(id) { document.getElementById('modalOverlay').style.display='block'; document.getElementById(id).style.display='block'; }
+        function closeModals() { document.getElementById('modalOverlay').style.display='none'; document.getElementById('authModal').style.display='none'; document.getElementById('postModal').style.display='none'; }
+        function closeGame() { document.getElementById('gamePage').style.display='none'; document.getElementById('gameIframe').src=''; }
+        function toggleFull() { document.getElementById("gameIframe").requestFullscreen(); }
+
+        init();
     </script>
 </body>
 </html>
